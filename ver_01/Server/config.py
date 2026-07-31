@@ -12,7 +12,7 @@ try:
         DEBUG: bool = True
         
         # Supabase Configuration
-        SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://your-supabase-project.supabase.co")
+        SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co")
         SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "your-supabase-key")
         
         # Neo4j Configuration
@@ -31,7 +31,7 @@ except Exception:
     class Settings:
         APP_NAME: str = os.getenv("APP_NAME", "세종시 AI 문화유산 플랫폼 API")
         DEBUG: bool = True
-        SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://your-supabase-project.supabase.co")
+        SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co")
         SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "your-supabase-key")
         NEO4J_URI: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")

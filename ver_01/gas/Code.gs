@@ -101,7 +101,7 @@ function getSpreadsheet() {
  * Query Supabase REST API directly for DB tables & Storage
  */
 function getSupabaseData(tableName, query) {
-  var supabaseUrl = getProp("SUPABASE_URL", "https://your-supabase-project.supabase.co");
+  var supabaseUrl = getProp("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co");
   var supabaseKey = getProp("SUPABASE_KEY", "your-supabase-key");
   
   var url = supabaseUrl + "/rest/v1/" + tableName + (query ? ("?" + query) : "?select=*");
