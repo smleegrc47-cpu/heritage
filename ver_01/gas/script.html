@@ -31,6 +31,7 @@
 
   // Initialize App on Load
   window.onload = function() {
+    navigateTo('home');
     fetchInitialData();
   };
 
@@ -70,6 +71,7 @@
     renderSearchView();
     renderMyPageView();
     updateCountsSummary();
+    navigateTo('home');
   }
 
   // SPA Tab Routing Helper
