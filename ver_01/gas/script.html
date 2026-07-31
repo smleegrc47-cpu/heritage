@@ -1,6 +1,19 @@
 <script>
   /* script.html - 공통 클라이언트 JS (SPA 라우팅, google.script.run 호출, 상태 관리) */
 
+  // Server Backend Endpoint Helper Function
+  function getServerUrl(path) {
+    var baseUrl = (typeof window !== 'undefined' && window.CLOUD_RUN_SERVER_URL)
+      ? window.CLOUD_RUN_SERVER_URL
+      : 'https://heritage-min-503408.us-central1.run.app';
+    if (!path) return baseUrl;
+    if (!path.startsWith('/')) path = '/' + path;
+    return baseUrl.replace(/\/$/, '') + path;
+  }
+  if (typeof window !== 'undefined') {
+    window.getServerUrl = getServerUrl;
+  }
+
   // Global State Stores
   var appState = {
     currentTab: 'home',
