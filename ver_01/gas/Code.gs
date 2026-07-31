@@ -127,6 +127,45 @@ function getSupabaseData(tableName, query) {
 }
 
 /**
+ * [GAS Server Proxy] Import Excel records to Backend Server via UrlFetchApp (Bypasses Browser CORS)
+ */
+function importExcelServerProxy(records) {
+  var serverUrl = getCloudRunBackendUrl() + "/api/admin/import-excel";
+  var options = {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({ records: records }),
+    muteHttpExceptions: true
+  };
+  try {
+    var response = UrlFetchApp.fetch(serverUrl, options);
+    var content = response.getContentText();
+    return JSON.parse(content);
+  } catch (err) {
+    return { error: true, message: err.toString() };
+  }
+}
+
+/**
+ * [GAS Server Proxy] Query Supabase Live Status via UrlFetchApp (Bypasses Browser CORS)
+ */
+function getSupabaseStatusServerProxy() {
+  var serverUrl = getCloudRunBackendUrl() + "/api/admin/supabase-status";
+  var options = {
+    method: "get",
+    contentType: "application/json",
+    muteHttpExceptions: true
+  };
+  try {
+    var response = UrlFetchApp.fetch(serverUrl, options);
+    var content = response.getContentText();
+    return JSON.parse(content);
+  } catch (err) {
+    return { heritages_count: 0, images_count: 0, users_count: 0, reviews_count: 0 };
+  }
+}
+
+/**
  * [GAS API] Initial WebApp Data Batch Fetch (Primary: Supabase DB & Storage, Fallback: Spreadsheet)
  */
 function getInitialWebAppData() {

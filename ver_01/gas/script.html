@@ -211,26 +211,32 @@
       el.innerText = approvedCitizenCount;
     });
 
-    // Query live Supabase row counts directly from server DB endpoint
-    var serverStatusUrl = getServerUrl('/api/admin/supabase-status');
-    fetch(serverStatusUrl)
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        var supaH = document.getElementById('supaHeritagesCountText');
-        if (supaH) supaH.innerText = (data.heritages_count || 0) + '건 (실제 DB)';
+    function applyStatusData(data) {
+      if (!data) return;
+      var supaH = document.getElementById('supaHeritagesCountText');
+      if (supaH) supaH.innerText = (data.heritages_count || 0) + '건 (실제 DB)';
 
-        var supaImg = document.getElementById('supaHeritageImagesCountText');
-        if (supaImg) supaImg.innerText = (data.images_count || 0) + '건 (실제 DB)';
+      var supaImg = document.getElementById('supaHeritageImagesCountText');
+      if (supaImg) supaImg.innerText = (data.images_count || 0) + '건 (실제 DB)';
 
-        var supaStore = document.getElementById('supaStorageCountText');
-        if (supaStore) supaStore.innerText = (data.images_count || 0) + '개 (Storage)';
+      var supaStore = document.getElementById('supaStorageCountText');
+      if (supaStore) supaStore.innerText = (data.images_count || 0) + '개 (Storage)';
 
-        var supaRev = document.getElementById('supaReviewsCountText');
-        if (supaRev) supaRev.innerText = (data.reviews_count || 0) + '건';
-      })
-      .catch(function(err) {
-        console.warn('Supabase live status fetch notice:', err);
-      });
+      var supaRev = document.getElementById('supaReviewsCountText');
+      if (supaRev) supaRev.innerText = (data.reviews_count || 0) + '건';
+    }
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(applyStatusData).getSupabaseStatusServerProxy();
+    } else {
+      var serverStatusUrl = getServerUrl('/api/admin/supabase-status');
+      fetch(serverStatusUrl)
+        .then(function(res) { return res.json(); })
+        .then(applyStatusData)
+        .catch(function(err) {
+          console.warn('Supabase live status fetch notice:', err);
+        });
+    }
   }
 
   // Global Admin Parsed Excel & ZIP Image Storage Cache
@@ -436,20 +442,9 @@
       statusDiv.innerHTML = '☁️ 백엔드 서버(' + serverEndpoint + ')를 통해 Supabase DB 및 Storage로 일괄 이관을 진행하고 있습니다...';
     }
 
-    fetch(serverEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ records: records })
-    })
-    .then(function(res) {
-      if (!res.ok) {
-        throw new Error('서버 응답 오류 (HTTP ' + res.status + ')');
-      }
-      return res.json();
-    })
-    .then(function(data) {
-      var returnedData = data.data || records;
-      alert('✅ ' + (data.message || ('서버를 통해 총 ' + returnedData.length + '건의 데이터가 Supabase DB(heritages) 및 Storage에 정식 이관 적재되었습니다!')));
+    function handleSuccess(data) {
+      var returnedData = (data && data.data) ? data.data : records;
+      alert('✅ ' + ((data && data.message) || ('서버를 통해 총 ' + returnedData.length + '건의 데이터가 Supabase DB(heritages) 및 Storage에 정식 이관 적재되었습니다!')));
       
       window.adminParsedExcelData = returnedData;
       renderAdminExcelPreview(returnedData, true);
@@ -458,14 +453,37 @@
         appState.officialHeritages.push(item);
       });
       updateCountsSummary();
-    })
-    .catch(function(err) {
-      alert('❌ Supabase 서버 연동 실패: ' + err.message + '\n요청 대상 서버: ' + serverEndpoint);
+    }
+
+    function handleFail(err) {
+      var msg = (err && err.message) ? err.message : err.toString();
+      alert('❌ Supabase 서버 연동 실패: ' + msg + '\n요청 대상 서버: ' + serverEndpoint);
       if (statusDiv) {
         statusDiv.style.borderLeftColor = 'var(--accent-rose)';
-        statusDiv.innerHTML = '❌ <strong>Supabase 서버 연결 실패:</strong> ' + err.message + ' (서버 주소: ' + serverEndpoint + ')';
+        statusDiv.innerHTML = '❌ <strong>Supabase 서버 연결 실패:</strong> ' + msg + ' (서버 주소: ' + serverEndpoint + ')';
       }
-    });
+    }
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(handleSuccess)
+        .withFailureHandler(handleFail)
+        .importExcelServerProxy(records);
+    } else {
+      fetch(serverEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ records: records })
+      })
+      .then(function(res) {
+        if (!res.ok) {
+          throw new Error('서버 응답 오류 (HTTP ' + res.status + ')');
+        }
+        return res.json();
+      })
+      .then(handleSuccess)
+      .catch(handleFail);
+    }
   }
 
   function loadAdminDataFromSupabase() {
