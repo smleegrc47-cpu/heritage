@@ -41,6 +41,61 @@ def review_citizen_recommendation(rec_id: str, req: AdminApprovalRequest):
             
     raise HTTPException(status_code=404, detail="해당 추천 제보 건을 찾을 수 없습니다.")
 
+@router.get("/supabase-status")
+def get_supabase_status():
+    """Query live Supabase DB table row counts directly from Supabase REST API"""
+    supabase_url = settings.SUPABASE_URL or "https://nmzrxczcytkkwgpiseaj.supabase.co"
+    supabase_key = settings.SUPABASE_KEY
+
+    heritages_count = 0
+    images_count = 0
+    users_count = 0
+    reviews_count = 0
+
+    if supabase_key and "your-supabase" not in supabase_key:
+        headers = {"apikey": supabase_key, "Authorization": f"Bearer {supabase_key}"}
+
+        # 1. Heritages count
+        try:
+            url = f"{supabase_url}/rest/v1/heritages?select=id"
+            req = urllib.request.Request(url, headers=headers, method="GET")
+            with urllib.request.urlopen(req) as res:
+                if res.status == 200:
+                    data = json.loads(res.read().decode("utf-8"))
+                    heritages_count = len(data)
+        except Exception as e:
+            print(f"Status check heritages error: {e}")
+
+        # 2. Heritage Images count
+        try:
+            url = f"{supabase_url}/rest/v1/heritage_images?select=id"
+            req = urllib.request.Request(url, headers=headers, method="GET")
+            with urllib.request.urlopen(req) as res:
+                if res.status == 200:
+                    data = json.loads(res.read().decode("utf-8"))
+                    images_count = len(data)
+        except Exception as e:
+            print(f"Status check images error: {e}")
+
+        # 3. Reviews count
+        try:
+            url = f"{supabase_url}/rest/v1/reviews?select=id"
+            req = urllib.request.Request(url, headers=headers, method="GET")
+            with urllib.request.urlopen(req) as res:
+                if res.status == 200:
+                    data = json.loads(res.read().decode("utf-8"))
+                    reviews_count = len(data)
+        except Exception as e:
+            print(f"Status check reviews error: {e}")
+
+    return {
+        "heritages_count": heritages_count,
+        "images_count": images_count,
+        "users_count": users_count,
+        "reviews_count": reviews_count,
+        "supabase_url": supabase_url
+    }
+
 class ExcelHeritageRow(BaseModel):
     h_id: Optional[str] = None
     name: str

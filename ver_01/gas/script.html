@@ -201,7 +201,6 @@
   function updateCountsSummary() {
     var officialCount = appState.officialHeritages.length;
     var approvedCitizenCount = appState.citizenHeritages.filter(function(h) { return h.status === '승인'; }).length;
-    var totalHeritagesCount = officialCount + appState.citizenHeritages.length;
 
     document.querySelectorAll('.count-official-text').forEach(function(el) {
       el.innerText = officialCount;
@@ -210,15 +209,26 @@
       el.innerText = approvedCitizenCount;
     });
 
-    // Supabase DB & Storage Live Status Card Counters
-    var supaH = document.getElementById('supaHeritagesCountText');
-    if (supaH) supaH.innerText = totalHeritagesCount;
+    // Query live Supabase row counts directly from server DB endpoint
+    var serverStatusUrl = getServerUrl('/api/admin/supabase-status');
+    fetch(serverStatusUrl)
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var supaH = document.getElementById('supaHeritagesCountText');
+        if (supaH) supaH.innerText = (data.heritages_count || 0) + '건 (실제 DB)';
 
-    var supaImg = document.getElementById('supaHeritageImagesCountText');
-    if (supaImg) supaImg.innerText = totalHeritagesCount;
+        var supaImg = document.getElementById('supaHeritageImagesCountText');
+        if (supaImg) supaImg.innerText = (data.images_count || 0) + '건 (실제 DB)';
 
-    var supaStore = document.getElementById('supaStorageCountText');
-    if (supaStore) supaStore.innerText = totalHeritagesCount;
+        var supaStore = document.getElementById('supaStorageCountText');
+        if (supaStore) supaStore.innerText = (data.images_count || 0) + '개 (Storage)';
+
+        var supaRev = document.getElementById('supaReviewsCountText');
+        if (supaRev) supaRev.innerText = (data.reviews_count || 0) + '건';
+      })
+      .catch(function(err) {
+        console.warn('Supabase live status fetch notice:', err);
+      });
   }
 
   // Global Admin Parsed Excel & ZIP Image Storage Cache
