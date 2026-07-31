@@ -13,7 +13,7 @@ try:
         
         # Supabase Configuration
         SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co")
-        SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "your-supabase-key")
+        SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw")
         
         # Neo4j Configuration
         NEO4J_URI: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
@@ -32,7 +32,7 @@ except Exception:
         APP_NAME: str = os.getenv("APP_NAME", "세종시 AI 문화유산 플랫폼 API")
         DEBUG: bool = True
         SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co")
-        SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "your-supabase-key")
+        SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw")
         NEO4J_URI: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")
         NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "password")

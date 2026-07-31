@@ -102,7 +102,7 @@ function getSpreadsheet() {
  */
 function getSupabaseData(tableName, query) {
   var supabaseUrl = getProp("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co");
-  var supabaseKey = getProp("SUPABASE_KEY", "your-supabase-key");
+  var supabaseKey = getProp("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw");
   
   var url = supabaseUrl + "/rest/v1/" + tableName + (query ? ("?" + query) : "?select=*");
   var options = {
