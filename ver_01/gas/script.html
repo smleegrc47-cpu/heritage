@@ -50,16 +50,18 @@
   }
 
   function fetchSupabaseDirectly() {
-    fetch('/api/heritages')
+    fetch(getServerUrl('/heritages'))
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        if (Array.isArray(data) && data.length > 0) {
-          appState.officialHeritages = data.filter(function(x) { return x.source !== 'citizen'; });
-          appState.citizenHeritages = data.filter(function(x) { return x.source === 'citizen'; });
+        var items = data.items || data || [];
+        if (Array.isArray(items) && items.length > 0) {
+          appState.officialHeritages = items.filter(function(x) { return x.source !== 'citizen'; });
+          appState.citizenHeritages = items.filter(function(x) { return x.source === 'citizen'; });
         }
         initScreenViews();
       })
       .catch(function(err) {
+        console.warn('Initial server fetch notice:', err);
         initScreenViews();
       });
   }
@@ -415,20 +417,27 @@
     }
 
     var statusDiv = document.getElementById('adminZipExtractStatus');
+    var serverEndpoint = getServerUrl('/api/admin/import-excel');
+
     if (statusDiv) {
       statusDiv.style.display = 'block';
-      statusDiv.innerHTML = '☁️ 백엔드 서버(ver_01/Server)를 통해 Supabase DB 및 Storage로 일괄 이관을 진행하고 있습니다...';
+      statusDiv.innerHTML = '☁️ 백엔드 서버(' + serverEndpoint + ')를 통해 Supabase DB 및 Storage로 일괄 이관을 진행하고 있습니다...';
     }
 
-    fetch('/api/admin/import-excel', {
+    fetch(serverEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records: records })
     })
-    .then(function(res) { return res.json(); })
+    .then(function(res) {
+      if (!res.ok) {
+        throw new Error('서버 응답 오류 (HTTP ' + res.status + ')');
+      }
+      return res.json();
+    })
     .then(function(data) {
       var returnedData = data.data || records;
-      alert('✅ ' + (data.message || ('서버(Server)를 통하여 총 ' + returnedData.length + '건의 데이터가 Supabase DB 및 Storage에 이관 완료되었습니다!')));
+      alert('✅ ' + (data.message || ('서버를 통해 총 ' + returnedData.length + '건의 데이터가 Supabase DB(heritages) 및 Storage에 정식 이관 적재되었습니다!')));
       
       window.adminParsedExcelData = returnedData;
       renderAdminExcelPreview(returnedData, true);
@@ -439,31 +448,30 @@
       updateCountsSummary();
     })
     .catch(function(err) {
-      alert('✅ [서버 연동 완료] 백엔드 서버(ver_01/Server)를 통해 총 ' + records.length + '건의 데이터 및 이미지가 Supabase DB(heritages) 및 Storage(heritage-images)에 성공적으로 저장되었습니다!');
-      records.forEach(function(item) {
-        appState.officialHeritages.push({
-          id: 'supa-' + Date.now() + Math.random(),
-          name: item.name,
-          era: item.era,
-          dong: item.dong,
-          description: item.description,
-          thinking_point: item.thinkingPoint,
-          image_url: item.supabaseStorageUrl || 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800'
-        });
-      });
-      updateCountsSummary();
+      alert('❌ Supabase 서버 연동 실패: ' + err.message + '\n요청 대상 서버: ' + serverEndpoint);
+      if (statusDiv) {
+        statusDiv.style.borderLeftColor = 'var(--accent-rose)';
+        statusDiv.innerHTML = '❌ <strong>Supabase 서버 연결 실패:</strong> ' + err.message + ' (서버 주소: ' + serverEndpoint + ')';
+      }
     });
   }
 
   function loadAdminDataFromSupabase() {
     var statusDiv = document.getElementById('adminZipExtractStatus');
+    var serverEndpoint = getServerUrl('/heritages?source=registered');
+
     if (statusDiv) {
       statusDiv.style.display = 'block';
-      statusDiv.innerHTML = '☁️ 백엔드 서버(ver_01/Server)로부터 Supabase DB 및 Storage 최신 유산 데이터를 연동하여 불러오는 중입니다...';
+      statusDiv.innerHTML = '☁️ 백엔드 서버(' + serverEndpoint + ')로부터 Supabase DB 최신 레코드를 연동하여 불러오는 중입니다...';
     }
 
-    fetch('/heritages?source=registered')
-      .then(function(res) { return res.json(); })
+    fetch(serverEndpoint)
+      .then(function(res) {
+        if (!res.ok) {
+          throw new Error('서버 응답 오류 (HTTP ' + res.status + ')');
+        }
+        return res.json();
+      })
       .then(function(resData) {
         var items = resData.items || resData || [];
         var dbRecords = items.map(function(item, idx) {
@@ -483,35 +491,18 @@
           };
         });
 
-        if (dbRecords.length > 0) {
-          window.adminParsedExcelData = dbRecords;
-          renderAdminExcelPreview(dbRecords, true);
-        }
-
-        if (statusDiv) {
-          statusDiv.innerHTML = '☁️ <strong>[Server 경유 Supabase 동기화 완료]</strong> 총 <strong>' + dbRecords.length + '건</strong>의 Supabase 테이블 데이터와 Storage 이미지가 \'엑셀 화면\'에 표시되었습니다.';
-        }
-      })
-      .catch(function(err) {
-        var dbRecords = appState.officialHeritages.map(function(item, idx) {
-          var storageUrl = item.image_url || 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800';
-          return {
-            id: item.id || ('supa-db-uuid-' + (idx + 1)),
-            name: item.name,
-            era: item.era,
-            dong: item.dong || item.dong_eup_myeon,
-            description: item.description,
-            thinkingPoint: item.think_point || item.thinkingPoint,
-            supabaseStorageUrl: storageUrl,
-            image_url: storageUrl
-          };
-        });
-
         window.adminParsedExcelData = dbRecords;
         renderAdminExcelPreview(dbRecords, true);
 
         if (statusDiv) {
-          statusDiv.innerHTML = '☁️ <strong>[Server 경유 Supabase 연동 완료]</strong> 총 <strong>' + dbRecords.length + '건</strong>의 Supabase 데이터가 \'엑셀 화면\'에 정상 연동 표시되었습니다.';
+          statusDiv.innerHTML = '☁️ <strong>[Supabase DB 동기화 완료]</strong> 총 <strong>' + dbRecords.length + '건</strong>의 실제 Supabase DB 테이블 레코드가 엑셀 미리보기 화면에 연동 표시되었습니다.';
+        }
+      })
+      .catch(function(err) {
+        alert('❌ Supabase DB 연동 실패: ' + err.message);
+        if (statusDiv) {
+          statusDiv.style.borderLeftColor = 'var(--accent-rose)';
+          statusDiv.innerHTML = '❌ <strong>Supabase 데이터베이스 조회 실패:</strong> ' + err.message;
         }
       });
   }

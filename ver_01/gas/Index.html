@@ -10,6 +10,16 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script>
+    // Server Backend Endpoint Configuration (Cloud Run / NestJS Server)
+    window.CLOUD_RUN_SERVER_URL = "<?= getCloudRunBackendUrl() ?>";
+    
+    function getServerUrl(path) {
+      var baseUrl = window.CLOUD_RUN_SERVER_URL || 'https://heritage-min-503408.us-central1.run.app';
+      if (!path) return baseUrl;
+      if (!path.startsWith('/')) path = '/' + path;
+      return baseUrl.replace(/\/$/, '') + path;
+    }
+
     // Global Safe Fail-safe Guard & Fallback for navigateTo and OAuth script dialogs
     window.onerror = function(msg, url, line, col, error) {
       console.warn("GCP/WebApp Guarded Exception Ignored:", msg, "at line:", line);
