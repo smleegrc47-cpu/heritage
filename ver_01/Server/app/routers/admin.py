@@ -44,11 +44,16 @@ def review_citizen_recommendation(rec_id: str, req: AdminApprovalRequest):
 class ExcelHeritageRow(BaseModel):
     name: str
     era: Optional[str] = "시대 미상"
-    dong: Optional[str] = "세종특별자치시"
+    dong: Optional[str] = None
+    dong_eup_myeon: Optional[str] = None
     latitude: Optional[float] = None
+    lat: Optional[float] = None
     longitude: Optional[float] = None
+    lng: Optional[float] = None
     description: Optional[str] = None
     thinkingPoint: Optional[str] = None
+    thinking_point: Optional[str] = None
+    think_about: Optional[str] = None
     imageFileName: Optional[str] = None
     imageUrl: Optional[str] = None
 
@@ -66,15 +71,22 @@ def import_excel_and_images(req: BatchImportRequest):
         if not img_url and row.imageFileName:
             img_url = f"{supabase_url}/storage/v1/object/public/heritage-images/{row.imageFileName}"
             
+        final_dong = row.dong or row.dong_eup_myeon or "세종특별자치시"
+        final_lat = row.latitude or row.lat
+        final_lng = row.longitude or row.lng
+        final_thinking = row.thinkingPoint or row.thinking_point or row.think_about
+
         record = {
             "id": f"h-import-{len(processed_data) + 1}",
             "name": row.name,
             "era": row.era,
-            "dong": row.dong,
-            "latitude": row.latitude,
-            "longitude": row.longitude,
+            "dong": final_dong,
+            "dong_eup_myeon": final_dong,
+            "latitude": final_lat,
+            "longitude": final_lng,
             "description": row.description,
-            "thinkingPoint": row.thinkingPoint,
+            "thinkingPoint": final_thinking,
+            "thinking_point": final_thinking,
             "source": "registered",
             "status": "approved",
             "supabase_storage_url": img_url,
@@ -87,4 +99,5 @@ def import_excel_and_images(req: BatchImportRequest):
         "count": len(processed_data),
         "data": processed_data
     }
+
 

@@ -131,10 +131,15 @@ export class AdminService {
     name: string;
     era?: string;
     dong?: string;
+    dong_eup_myeon?: string;
     latitude?: number;
+    lat?: number;
     longitude?: number;
+    lng?: number;
     description?: string;
     thinkingPoint?: string;
+    thinking_point?: string;
+    think_about?: string;
     source?: string;
     status?: string;
     imageFileName?: string;
@@ -149,15 +154,20 @@ export class AdminService {
         finalImageUrl = `${supabaseUrl}/storage/v1/object/public/heritage-images/${encodeURIComponent(record.imageFileName)}`;
       }
 
+      const dongValue = record.dong || record.dong_eup_myeon || '세종특별자치시';
+      const latValue = record.latitude || record.lat;
+      const lngValue = record.longitude || record.lng;
+      const thinkingValue = record.thinkingPoint || record.thinking_point || record.think_about;
+
       const heritage = await this.prisma.heritage.create({
         data: {
           name: record.name,
           era: record.era || '시대 미상',
-          dong: record.dong || '세종특별자치시',
-          latitude: record.latitude ? Number(record.latitude) : null,
-          longitude: record.longitude ? Number(record.longitude) : null,
+          dong: dongValue,
+          latitude: latValue ? Number(latValue) : null,
+          longitude: lngValue ? Number(lngValue) : null,
           description: record.description,
-          thinkingPoint: record.thinkingPoint,
+          thinkingPoint: thinkingValue,
           source: record.source || 'registered',
           status: record.status || 'approved',
           images: finalImageUrl
@@ -171,6 +181,8 @@ export class AdminService {
 
       insertedList.push({
         ...heritage,
+        dong_eup_myeon: heritage.dong,
+        thinking_point: heritage.thinkingPoint,
         supabaseStorageUrl: finalImageUrl || null,
       });
     }
