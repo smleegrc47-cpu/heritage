@@ -70,12 +70,15 @@
       </div>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-      <button class="btn-secondary" onclick="parseAndPreviewAdminExcelData()" style="flex: 1; min-width: 200px;">
-        🔍 엑셀 & ZIP 압축 해제 후 화면에 불러오기
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
+      <button class="btn-secondary" onclick="parseAndPreviewAdminExcelData()" style="padding: 10px 14px; font-size: 0.85rem;">
+        🔍 1. 로컬 엑셀 & ZIP 파싱 불러오기
       </button>
-      <button class="btn-primary" onclick="saveAdminDataToSupabase()" style="flex: 1; min-width: 200px;">
-        💾 Supabase DB 테이블 & Storage 일괄 저장
+      <button class="btn-primary" onclick="saveAdminDataToSupabase()" style="padding: 10px 14px; font-size: 0.85rem;">
+        💾 2. Supabase DB & Storage 일괄 저장
+      </button>
+      <button class="btn-secondary" onclick="loadAdminDataFromSupabase()" style="padding: 10px 14px; font-size: 0.85rem; background: rgba(0, 245, 212, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
+        ☁️ 3. 데이터베이스에서 불러오기
       </button>
     </div>
 
