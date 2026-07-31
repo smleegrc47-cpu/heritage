@@ -42,8 +42,11 @@ def review_citizen_recommendation(rec_id: str, req: AdminApprovalRequest):
     raise HTTPException(status_code=404, detail="해당 추천 제보 건을 찾을 수 없습니다.")
 
 class ExcelHeritageRow(BaseModel):
+    h_id: Optional[str] = None
     name: str
+    address: Optional[str] = None
     era: Optional[str] = "시대 미상"
+    era_normalized: Optional[str] = None
     dong: Optional[str] = None
     dong_eup_myeon: Optional[str] = None
     latitude: Optional[float] = None
@@ -112,14 +115,31 @@ def import_excel_and_images(req: BatchImportRequest):
         final_lng = row.longitude or row.lng or 127.27
         final_thinking = row.thinkingPoint or row.thinking_point or row.think_about or ""
 
+        final_name = raw_name
+        final_h_id = row.h_id or f"H_{idx + 1}"
+        final_address = row.address or f"세종특별자치시 {final_dong}"
+        final_era = row.era or "조선시대"
+        final_era_norm = row.era_normalized or final_era
+        final_thinking = row.thinkingPoint or row.thinking_point or row.think_about or "세종시 문화유산의 가치를 느껴봅시다."
+        final_desc = row.description or f"세종특별자치시에 위치한 문화유산 {final_name}입니다."
+        final_lat = float(row.latitude or row.lat or 36.52)
+        final_lng = float(row.longitude or row.lng or 127.27)
+
         db_row = {
-            "name": raw_name,
-            "era": row.era or "조선시대",
+            "h_id": final_h_id,
+            "name": final_name,
+            "address": final_address,
+            "era": final_era,
+            "era_normalized": final_era_norm,
             "dong": final_dong,
+            "dong_eup_myeon": final_dong,
             "latitude": final_lat,
             "longitude": final_lng,
-            "description": row.description or "",
+            "lat": final_lat,
+            "lng": final_lng,
+            "description": final_desc,
             "thinking_point": final_thinking,
+            "think_about": final_thinking,
             "source": "registered",
             "status": "approved",
             "like_count": 50
