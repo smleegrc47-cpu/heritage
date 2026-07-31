@@ -312,7 +312,7 @@
     }
   }
 
-  function renderAdminExcelPreview(rows) {
+  function renderAdminExcelPreview(rows, isSynced) {
     var container = document.getElementById('adminExcelPreviewContainer');
     var tbody = document.getElementById('adminExcelPreviewTbody');
     var countBadge = document.getElementById('adminParsedCountBadge');
@@ -320,17 +320,25 @@
 
     container.style.display = 'block';
     tbody.innerHTML = '';
-    if (countBadge) countBadge.innerText = rows.length + '건';
+    if (countBadge) {
+      countBadge.innerText = rows.length + '건 ' + (isSynced ? '(Supabase 동기화)' : '(로컬 불러오기)');
+      countBadge.style.background = isSynced ? 'rgba(0, 245, 212, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+      countBadge.style.color = isSynced ? 'var(--accent-cyan)' : 'var(--accent-amber)';
+    }
 
     rows.forEach(function(r, idx) {
       var tr = document.createElement('tr');
       tr.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
 
-      // Check matched ZIP extracted image or default URL
       var matchedImgUrl = 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=400';
       var imgLabel = '샘플 이미지';
+      var statusBadge = `<span class="badge badge-era" style="font-size:0.75rem; background:rgba(245,158,11,0.2); color:var(--accent-amber);">⏳ Supabase 미저장</span>`;
 
-      if (r.imageFileName) {
+      if (isSynced) {
+        matchedImgUrl = r.supabaseStorageUrl || r.image_url || matchedImgUrl;
+        imgLabel = '☁️ Supabase Storage URL';
+        statusBadge = `<span class="badge badge-era" style="font-size:0.75rem; background:rgba(0,245,212,0.2); color:var(--accent-cyan);">✅ DB & Storage 동기화 완료</span>`;
+      } else if (r.imageFileName) {
         var key = r.imageFileName.toLowerCase();
         if (window.adminExtractedZipImages[key]) {
           matchedImgUrl = window.adminExtractedZipImages[key].url;
@@ -340,18 +348,23 @@
         }
       }
 
+      var dbIdTag = r.id ? `<div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">ID: ${r.id}</div>` : '';
+
       tr.innerHTML = `
         <td style="padding:10px;">
           <img src="${matchedImgUrl}" style="width:60px; height:45px; object-fit:cover; border-radius:6px; border:1px solid rgba(255,255,255,0.2);" alt="preview">
           <span style="display:block; font-size:0.7rem; color:var(--accent-cyan); margin-top:2px;">${imgLabel}</span>
         </td>
-        <td style="padding:10px; font-weight:bold; color:#fff;">${r.name || '미정'}</td>
+        <td style="padding:10px; font-weight:bold; color:#fff;">
+          ${r.name || '미정'}
+          ${dbIdTag}
+        </td>
         <td style="padding:10px; color:var(--accent-amber); font-weight:600;">${r.era || '조선'}</td>
         <td style="padding:10px;">${r.dong || '세종시'}</td>
         <td style="padding:10px; font-size:0.8rem; color:#cbd5e1; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.description || ''}</td>
         <td style="padding:10px; font-size:0.8rem; color:#94a3b8; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.thinkingPoint || ''}</td>
         <td style="padding:10px;">
-          <span class="badge badge-era" style="font-size:0.75rem; background:rgba(0,245,212,0.15); color:var(--accent-cyan);">대기 (Ready)</span>
+          ${statusBadge}
         </td>
       `;
       tbody.appendChild(tr);
