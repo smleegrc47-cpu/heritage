@@ -1,152 +1,181 @@
 <!-- page_admin.html - 10. 관리자 페이지 (관리자 전용) -->
 <section id="page_admin" class="tab-section">
-  <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
+  <!-- Admin Header Section -->
+  <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
     <div>
-      <span class="badge badge-era" style="margin-bottom: 6px;">🔒 Administrator Only</span>
-      <h1 class="page-title">세종 문화유산 통합 관리자 센터</h1>
-      <p class="page-desc">시민 제보 검토·승인, 편의시설 개선 요청 모니터링 및 종합 통계 보고서 생성을 수행합니다.</p>
+      <span class="badge badge-era" style="margin-bottom: 8px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">🔒 Administrator Only</span>
+      <h1 class="page-title" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; background: linear-gradient(135deg, #fff, #a5f3fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        세종 문화유산 통합 관리자 센터
+      </h1>
+      <p class="page-desc" style="color: var(--text-sub); font-size: 0.9rem;">
+        Supabase 데이터베이스 및 Storage 관리, 시민 제보 검토·승인, 시설 개선 요청 모니터링을 수행합니다.
+      </p>
     </div>
 
     <div style="display: flex; gap: 10px;">
-      <button class="btn-secondary" onclick="filterAdminImprovementNeeded()">
+      <button class="btn-secondary" onclick="filterAdminImprovementNeeded()" style="font-size: 0.85rem; padding: 8px 14px;">
         ⚠️ 개선 필요 항목만 보기
       </button>
-      <button class="btn-primary" onclick="generateAdminSummaryReport()">
+      <button class="btn-primary" onclick="generateAdminSummaryReport()" style="font-size: 0.85rem; padding: 8px 14px; background: linear-gradient(135deg, var(--primary-color), #4f46e5);">
         📄 보고서 작성 (Google Docs/PDF)
       </button>
     </div>
   </div>
 
-  <!-- Admin Stats Overview -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px;">
-    <div class="glass-card" style="text-align: center; padding: 20px;">
-      <span style="font-size: 0.85rem; color: var(--text-sub);">🏛️ 지정 문화유산</span>
-      <strong style="font-size: 1.8rem; color: var(--accent-cyan); display: block; margin-top: 4px;" class="count-official-text">0</strong>
+  <!-- Top Executive Metric KPI Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 28px;">
+    <div class="glass-card" style="padding: 20px; border-top: 3px solid var(--accent-cyan); background: rgba(15, 23, 42, 0.6);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-sub); font-weight: 600;">🏛️ 지정 문화유산</span>
+        <span class="badge" style="background: rgba(0,245,212,0.1); color: var(--accent-cyan); font-size: 0.7rem;">국가/지자체</span>
+      </div>
+      <strong style="font-size: 2rem; color: var(--accent-cyan); display: block; margin-top: 8px; font-family: 'Outfit', sans-serif;" class="count-official-text">0</strong>
     </div>
-    <div class="glass-card" style="text-align: center; padding: 20px;">
-      <span style="font-size: 0.85rem; color: var(--text-sub);">⏳ 제보 대기 중</span>
-      <strong id="adminPendingCountText" style="font-size: 1.8rem; color: var(--accent-amber); display: block; margin-top: 4px;">0</strong>
+
+    <div class="glass-card" style="padding: 20px; border-top: 3px solid var(--accent-amber); background: rgba(15, 23, 42, 0.6);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-sub); font-weight: 600;">⏳ 제보 검토 대기</span>
+        <span class="badge" style="background: rgba(245,158,11,0.1); color: var(--accent-amber); font-size: 0.7rem;">시민 제보</span>
+      </div>
+      <strong id="adminPendingCountText" style="font-size: 2rem; color: var(--accent-amber); display: block; margin-top: 8px; font-family: 'Outfit', sans-serif;">0</strong>
     </div>
-    <div class="glass-card" style="text-align: center; padding: 20px;">
-      <span style="font-size: 0.85rem; color: var(--text-sub);">✅ 승인 완료 제보</span>
-      <strong id="adminApprovedCountText" style="font-size: 1.8rem; color: var(--accent-blue); display: block; margin-top: 4px;">0</strong>
+
+    <div class="glass-card" style="padding: 20px; border-top: 3px solid var(--accent-blue); background: rgba(15, 23, 42, 0.6);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-sub); font-weight: 600;">✅ 승인 완료 제보</span>
+        <span class="badge" style="background: rgba(59,130,246,0.1); color: var(--accent-blue); font-size: 0.7rem;">공동체 지도</span>
+      </div>
+      <strong id="adminApprovedCountText" style="font-size: 2rem; color: var(--accent-blue); display: block; margin-top: 8px; font-family: 'Outfit', sans-serif;">0</strong>
     </div>
-    <div class="glass-card" style="text-align: center; padding: 20px;">
-      <span style="font-size: 0.85rem; color: var(--text-sub);">⚠️ 시설 개선 필요 건</span>
-      <strong id="adminImprovementCountText" style="font-size: 1.8rem; color: var(--accent-rose); display: block; margin-top: 4px;">2</strong>
+
+    <div class="glass-card" style="padding: 20px; border-top: 3px solid var(--accent-rose); background: rgba(15, 23, 42, 0.6);">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-sub); font-weight: 600;">⚠️ 시설 개선 요청</span>
+        <span class="badge" style="background: rgba(244,63,94,0.1); color: var(--accent-rose); font-size: 0.7rem;">모니터링</span>
+      </div>
+      <strong id="adminImprovementCountText" style="font-size: 2rem; color: var(--accent-rose); display: block; margin-top: 8px; font-family: 'Outfit', sans-serif;">2</strong>
     </div>
-  <!-- Supabase DB Tables & Storage Live Status Overview Card -->
-  <div class="glass-card" style="margin-bottom: 28px; background: rgba(0, 245, 212, 0.03); border: 1px solid rgba(0, 245, 212, 0.2);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+  </div>
+
+  <!-- Supabase Live DB Tables & Storage Status Card -->
+  <div class="glass-card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(0, 245, 212, 0.04), rgba(59, 130, 246, 0.03)); border: 1px solid rgba(0, 245, 212, 0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
         ☁️ Supabase DB 테이블 & Storage 실시간 적재 현황
       </h3>
-      <span class="badge badge-era" style="background: rgba(0,245,212,0.15); color: var(--accent-cyan);">🟢 Supabase REST Connected</span>
+      <span class="badge badge-era" style="background: rgba(0,245,212,0.15); color: var(--accent-cyan); font-weight: 600;">🟢 Server REST Connected</span>
     </div>
 
     <!-- Table Names & Row Counts Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px;">
-      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-cyan);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px;">
+      <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border-left: 3px solid var(--accent-cyan);">
         <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">📊 DB 테이블명</span>
         <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">heritages</strong>
         <span style="font-size: 0.8rem; color: var(--accent-cyan); display: block; margin-top: 4px;">저장량: <strong id="supaHeritagesCountText">0</strong>건</span>
       </div>
 
-      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-amber);">
+      <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border-left: 3px solid var(--accent-amber);">
         <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">🖼️ DB 테이블명</span>
         <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">heritage_images</strong>
         <span style="font-size: 0.8rem; color: var(--accent-amber); display: block; margin-top: 4px;">저장량: <strong id="supaHeritageImagesCountText">0</strong>건</span>
       </div>
 
-      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-blue);">
+      <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border-left: 3px solid var(--accent-blue);">
         <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">📦 Storage 버킷명</span>
         <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">heritage-images</strong>
         <span style="font-size: 0.8rem; color: var(--accent-blue); display: block; margin-top: 4px;">파일 저장량: <strong id="supaStorageCountText">0</strong>개</span>
       </div>
 
-      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid #a855f7;">
+      <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border-left: 3px solid #a855f7;">
         <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">👥 DB 테이블명</span>
         <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">users</strong>
         <span style="font-size: 0.8rem; color: #a855f7; display: block; margin-top: 4px;">저장량: <strong id="supaUsersCountText">1</strong>명</span>
       </div>
 
-      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-rose);">
+      <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border-left: 3px solid var(--accent-rose);">
         <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">💬 DB 테이블명</span>
         <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">reviews</strong>
         <span style="font-size: 0.8rem; color: var(--accent-rose); display: block; margin-top: 4px;">저장량: <strong id="supaReviewsCountText">2</strong>건</span>
       </div>
     </div>
     
-    <div style="font-size: 0.78rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
-      🔒 <strong>서버 전용 연동 (Server Managed):</strong> 모든 DB 인서트 및 Storage 업로드는 서블릿 서버(<code style="color: var(--accent-cyan);">ver_01/Server</code>) 환경변수를 통하여 안전하게 처리됩니다.
+    <div style="font-size: 0.78rem; color: var(--text-muted); background: rgba(0,0,0,0.25); padding: 10px 14px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+      <span>🔒 <strong>서버 동기화 (Server Managed):</strong> 모든 DB 인서트 및 Storage 업로드는 백엔드 서버(<code style="color: var(--accent-cyan);">ver_01/Server</code>) 환경변수를 통하여 안전하게 처리됩니다.</span>
+      <span style="color: var(--accent-cyan); font-size: 0.75rem;">스토리지 경로: /storage/v1/object/public/heritage-images/</span>
     </div>
   </div>
 
-  <!-- External Excel File & Image ZIP Compressed File Loader (Supabase DB & Storage) -->
+  <!-- Local Excel (.xlsx) & Image ZIP (.zip) Data Import Module -->
   <div class="glass-card" style="margin-bottom: 28px;">
-    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 8px;">
-      📊 로컬 엑셀 파일(.xlsx) & 이미지 압축파일(.zip) 데이터 불러오기
-    </h3>
-    <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px;">
-      로컬 컴퓨터의 문화유산 엑셀 목록(.xlsx/.csv)과 이미지 압축파일(.zip)을 불러와 자동 해제 및 파싱하여 화면에 미리보기하고 Supabase DB 테이블 및 Storage에 일괄 이관합니다.
-    </p>
+    <div style="margin-bottom: 16px;">
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+        📊 로컬 엑셀 파일(.xlsx) & 이미지 압축파일(.zip) 데이터 불러오기
+      </h3>
+      <p style="font-size: 0.85rem; color: var(--text-sub);">
+        컴퓨터의 문화유산 엑셀 목록(.xlsx/.csv)과 이미지 압축파일(.zip)을 불러와 자동 파싱 및 화면 미리보기를 거쳐 Supabase DB 및 Storage에 일괄 이관합니다.
+      </p>
+    </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px;">
+    <!-- Dual Dropzone Inputs -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 18px;">
       <!-- 1. Excel File Loader -->
-      <div style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 8px; border: 1px dashed var(--accent-amber);">
-        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
+      <div style="background: rgba(245, 158, 11, 0.04); padding: 16px; border-radius: 10px; border: 1px dashed rgba(245, 158, 11, 0.4);">
+        <label style="display: block; font-size: 0.88rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
           📄 1. 로컬 엑셀 파일 (.xlsx / .csv)
         </label>
         <input type="file" id="adminExcelFileInput" accept=".xlsx,.csv,.json" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
-        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">
-          열 구성: [명칭, 시대, 읍면동, 소개, 생각할거리, 이미지파일명]
+        <span style="font-size: 0.73rem; color: var(--text-muted); display: block; margin-top: 6px;">
+          열 순서: [명칭, 시대, 읍면동, 소개, 생각할거리, 이미지파일명]
         </span>
       </div>
 
       <!-- 2. ZIP Compressed Images Loader -->
-      <div style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 8px; border: 1px dashed var(--accent-cyan);">
-        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
+      <div style="background: rgba(0, 245, 212, 0.04); padding: 16px; border-radius: 10px; border: 1px dashed rgba(0, 245, 212, 0.4);">
+        <label style="display: block; font-size: 0.88rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
           📦 2. 로컬 이미지 압축파일 (.zip)
         </label>
         <input type="file" id="adminZipFileInput" accept=".zip" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
-        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">
-          문화유산 사진 파일들(.jpg/.png)이 담긴 ZIP 파일
+        <span style="font-size: 0.73rem; color: var(--text-muted); display: block; margin-top: 6px;">
+          문화유산 사진 이미지들(.jpg/.png)이 압축된 ZIP 파일
         </span>
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
-      <button class="btn-secondary" onclick="parseAndPreviewAdminExcelData()" style="padding: 10px 14px; font-size: 0.85rem;">
-        🔍 1. 로컬 엑셀 & ZIP 파싱 불러오기
+    <!-- Action Buttons -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+      <button class="btn-secondary" onclick="parseAndPreviewAdminExcelData()" style="padding: 10px 14px; font-size: 0.85rem; font-weight: 600;">
+        🔍 1. 엑셀 & ZIP 파싱 미리보기
       </button>
-      <button class="btn-primary" onclick="saveAdminDataToSupabase()" style="padding: 10px 14px; font-size: 0.85rem;">
+      <button class="btn-primary" onclick="saveAdminDataToSupabase()" style="padding: 10px 14px; font-size: 0.85rem; font-weight: 600; background: linear-gradient(135deg, var(--accent-amber), #d97706);">
         💾 2. Supabase DB & Storage 일괄 저장
       </button>
-      <button class="btn-secondary" onclick="loadAdminDataFromSupabase()" style="padding: 10px 14px; font-size: 0.85rem; background: rgba(0, 245, 212, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
+      <button class="btn-secondary" onclick="loadAdminDataFromSupabase()" style="padding: 10px 14px; font-size: 0.85rem; font-weight: 600; background: rgba(0, 245, 212, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);">
         ☁️ 3. 데이터베이스에서 불러오기
       </button>
     </div>
 
-    <!-- Extraction Status & Progress -->
-    <div id="adminZipExtractStatus" style="display: none; padding: 10px 14px; background: rgba(0, 245, 212, 0.1); border-left: 4px solid var(--accent-cyan); border-radius: 4px; font-size: 0.85rem; color: #fff; margin-bottom: 16px;">
+    <!-- Status Message Div -->
+    <div id="adminZipExtractStatus" style="display: none; padding: 12px 16px; background: rgba(0, 245, 212, 0.08); border-left: 4px solid var(--accent-cyan); border-radius: 6px; font-size: 0.85rem; color: #fff; margin-bottom: 16px;">
     </div>
 
-    <!-- Excel Preview Container -->
-    <div id="adminExcelPreviewContainer" style="display: none; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; overflow-x: auto;">
-      <h4 style="font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span>📋 불러온 엑셀 데이터 및 추출 이미지 매핑 목록</span>
+    <!-- Excel Preview Table Container -->
+    <div id="adminExcelPreviewContainer" style="display: none; background: rgba(0,0,0,0.25); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h4 style="font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan);">
+          📋 파싱 결과 및 Supabase DB & Storage 매핑 목록
+        </h4>
         <span id="adminParsedCountBadge" class="badge badge-era">0건</span>
-      </h4>
+      </div>
       <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; color: #e2e8f0;">
         <thead>
           <tr style="border-bottom: 1px solid var(--border-color); color: var(--accent-cyan); background: rgba(255,255,255,0.03);">
-            <th style="padding: 10px;">이미지 미리보기</th>
+            <th style="padding: 10px;">사진 미리보기</th>
             <th style="padding: 10px;">문화유산 명칭</th>
             <th style="padding: 10px;">시대</th>
             <th style="padding: 10px;">읍면동</th>
-            <th style="padding: 10px;">상세 설명</th>
-            <th style="padding: 10px;">생각할 거리</th>
-            <th style="padding: 10px;">Supabase 상태</th>
+            <th style="padding: 10px;">소개</th>
+            <th style="padding: 10px;">생각할거리</th>
+            <th style="padding: 10px;">동기화 상태</th>
           </tr>
         </thead>
         <tbody id="adminExcelPreviewTbody">
@@ -155,31 +184,37 @@
     </div>
   </div>
 
-  <!-- Citizen Submissions Management Section (Unapproved vs Approved) -->
-  <div class="glass-card" style="margin-bottom: 28px;">
-    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 16px;">
-      🌱 시민 제보 문화유산 검토 및 승인 관리
-    </h3>
-    <div id="adminCitizenSubmissionsList" style="display: flex; flex-direction: column; gap: 12px;">
-      <!-- Dynamically populated via renderAdminView() -->
-    </div>
-  </div>
-
-  <!-- Citizen Reviews & Improvement Requests List -->
-  <div class="glass-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 1.2rem; font-weight: 700; color: #fff;">
-        💬 시민 탐방 후기 및 편의시설 개선 요청 건
-      </h3>
-      <select id="adminReviewFilterSelect" onchange="filterAdminReviews()" style="padding: 8px 12px; border-radius: 8px; background: #151e36; border: 1px solid var(--border-color); color: #fff; font-size: 0.85rem;">
-        <option value="all">전체 후기 보기</option>
-        <option value="improvement">개선 필요만 보기 (주차/화장실)</option>
-        <option value="low_rating">낮은 별점 (1~2점)</option>
-      </select>
+  <!-- 2-Column Responsive Dashboard Grid (Left: Citizen Submissions, Right: Reviews & Facility Requests) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+    <!-- Left Column: Citizen Submissions Review & Approval -->
+    <div class="glass-card" style="height: 100%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+          🌱 시민 제보 유산 검토 및 승인
+        </h3>
+        <span class="badge badge-citizen">현장 검토</span>
+      </div>
+      <div id="adminCitizenSubmissionsList" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Dynamically populated via renderAdminView() -->
+      </div>
     </div>
 
-    <div id="adminReviewsList" style="display: flex; flex-direction: column; gap: 12px;">
-      <!-- Dynamically populated -->
+    <!-- Right Column: User Reviews & Facility Improvement Monitoring -->
+    <div class="glass-card" style="height: 100%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 8px;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+          💬 탐방 후기 및 편의시설 요청
+        </h3>
+        <select id="adminReviewFilterSelect" onchange="filterAdminReviews()" style="padding: 6px 10px; border-radius: 6px; background: #151e36; border: 1px solid var(--border-color); color: #fff; font-size: 0.8rem;">
+          <option value="all">전체 후기 보기</option>
+          <option value="improvement">개선 필요만 보기 (주차/화장실)</option>
+          <option value="low_rating">낮은 별점 (1~2점)</option>
+        </select>
+      </div>
+
+      <div id="adminReviewsList" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Dynamically populated -->
+      </div>
     </div>
   </div>
 </section>
