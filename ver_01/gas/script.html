@@ -261,6 +261,8 @@
           var jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
           for (var i = 1; i < jsonRows.length; i++) {
+            var r = jsonRows[i];
+            if (!r || r.length === 0) continue;
             var dongVal = r[2] ? String(r[2]).trim() : '조치원읍';
             var thinkVal = r[4] ? String(r[4]).trim() : '생각할 거리';
             rows.push({
