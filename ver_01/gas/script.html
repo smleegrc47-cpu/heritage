@@ -191,6 +191,7 @@
   function updateCountsSummary() {
     var officialCount = appState.officialHeritages.length;
     var approvedCitizenCount = appState.citizenHeritages.filter(function(h) { return h.status === '승인'; }).length;
+    var totalHeritagesCount = officialCount + appState.citizenHeritages.length;
 
     document.querySelectorAll('.count-official-text').forEach(function(el) {
       el.innerText = officialCount;
@@ -198,6 +199,16 @@
     document.querySelectorAll('.count-citizen-text').forEach(function(el) {
       el.innerText = approvedCitizenCount;
     });
+
+    // Supabase DB & Storage Live Status Card Counters
+    var supaH = document.getElementById('supaHeritagesCountText');
+    if (supaH) supaH.innerText = totalHeritagesCount;
+
+    var supaImg = document.getElementById('supaHeritageImagesCountText');
+    if (supaImg) supaImg.innerText = totalHeritagesCount;
+
+    var supaStore = document.getElementById('supaStorageCountText');
+    if (supaStore) supaStore.innerText = totalHeritagesCount;
   }
 
   // Global Admin Parsed Excel & ZIP Image Storage Cache

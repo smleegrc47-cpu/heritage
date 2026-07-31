@@ -35,6 +35,51 @@
       <span style="font-size: 0.85rem; color: var(--text-sub);">⚠️ 시설 개선 필요 건</span>
       <strong id="adminImprovementCountText" style="font-size: 1.8rem; color: var(--accent-rose); display: block; margin-top: 4px;">2</strong>
     </div>
+  <!-- Supabase DB Tables & Storage Live Status Overview Card -->
+  <div class="glass-card" style="margin-bottom: 28px; background: rgba(0, 245, 212, 0.03); border: 1px solid rgba(0, 245, 212, 0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+        ☁️ Supabase DB 테이블 & Storage 실시간 적재 현황
+      </h3>
+      <span class="badge badge-era" style="background: rgba(0,245,212,0.15); color: var(--accent-cyan);">🟢 Supabase REST Connected</span>
+    </div>
+
+    <!-- Table Names & Row Counts Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px;">
+      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-cyan);">
+        <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">📊 DB 테이블명</span>
+        <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">heritages</strong>
+        <span style="font-size: 0.8rem; color: var(--accent-cyan); display: block; margin-top: 4px;">저장량: <strong id="supaHeritagesCountText">0</strong>건</span>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-amber);">
+        <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">🖼️ DB 테이블명</span>
+        <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">heritage_images</strong>
+        <span style="font-size: 0.8rem; color: var(--accent-amber); display: block; margin-top: 4px;">저장량: <strong id="supaHeritageImagesCountText">0</strong>건</span>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-blue);">
+        <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">📦 Storage 버킷명</span>
+        <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">heritage-images</strong>
+        <span style="font-size: 0.8rem; color: var(--accent-blue); display: block; margin-top: 4px;">파일 저장량: <strong id="supaStorageCountText">0</strong>개</span>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid #a855f7;">
+        <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">👥 DB 테이블명</span>
+        <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">users</strong>
+        <span style="font-size: 0.8rem; color: #a855f7; display: block; margin-top: 4px;">저장량: <strong id="supaUsersCountText">1</strong>명</span>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.04); padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-rose);">
+        <span style="font-size: 0.75rem; color: var(--text-sub); display: block;">💬 DB 테이블명</span>
+        <strong style="font-size: 0.95rem; color: #fff; display: block; margin-top: 2px;">reviews</strong>
+        <span style="font-size: 0.8rem; color: var(--accent-rose); display: block; margin-top: 4px;">저장량: <strong id="supaReviewsCountText">2</strong>건</span>
+      </div>
+    </div>
+    
+    <div style="font-size: 0.78rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;">
+      🔗 <strong>Supabase Storage Public URL Path:</strong> <code style="color: var(--accent-cyan);">https://&lt;SUPABASE_URL&gt;/storage/v1/object/public/heritage-images/</code>
+    </div>
   </div>
 
   <!-- External Excel File & Image ZIP Compressed File Loader (Supabase DB & Storage) -->
