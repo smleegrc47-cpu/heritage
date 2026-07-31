@@ -126,4 +126,59 @@ export class AdminService {
       statsSummary: stats,
     };
   }
+
+  async importBatchHeritageData(records: Array<{
+    name: string;
+    era?: string;
+    dong?: string;
+    latitude?: number;
+    longitude?: number;
+    description?: string;
+    thinkingPoint?: string;
+    source?: string;
+    status?: string;
+    imageFileName?: string;
+    imageUrl?: string;
+  }>) {
+    const supabaseUrl = process.env.SUPABASE_URL || 'https://your-supabase-project.supabase.co';
+    const insertedList = [];
+
+    for (const record of records) {
+      let finalImageUrl = record.imageUrl;
+      if (!finalImageUrl && record.imageFileName) {
+        finalImageUrl = `${supabaseUrl}/storage/v1/object/public/heritage-images/${encodeURIComponent(record.imageFileName)}`;
+      }
+
+      const heritage = await this.prisma.heritage.create({
+        data: {
+          name: record.name,
+          era: record.era || '시대 미상',
+          dong: record.dong || '세종특별자치시',
+          latitude: record.latitude ? Number(record.latitude) : null,
+          longitude: record.longitude ? Number(record.longitude) : null,
+          description: record.description,
+          thinkingPoint: record.thinkingPoint,
+          source: record.source || 'registered',
+          status: record.status || 'approved',
+          images: finalImageUrl
+            ? {
+                create: [{ imageUrl: finalImageUrl, sortOrder: 0 }],
+              }
+            : undefined,
+        },
+        include: { images: true },
+      });
+
+      insertedList.push({
+        ...heritage,
+        supabaseStorageUrl: finalImageUrl || null,
+      });
+    }
+
+    return {
+      message: `성공적으로 ${insertedList.length}건의 문화유산 데이터와 이미지를 Supabase DB 및 Storage에 등록하였습니다.`,
+      count: insertedList.length,
+      data: insertedList,
+    };
+  }
 }

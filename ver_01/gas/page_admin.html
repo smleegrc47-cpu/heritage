@@ -37,6 +37,55 @@
     </div>
   </div>
 
+  <!-- External Excel File & Image Import Section (Supabase DB & Storage) -->
+  <div class="glass-card" style="margin-bottom: 28px;">
+    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 8px;">
+      📊 외부 엑셀 파일 및 이미지 불러오기 (Supabase DB & Storage 연동)
+    </h3>
+    <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px;">
+      외부 엑셀(.xlsx/.csv) 및 이미지(.jpg/.png) 파일 데이터를 파싱하여 화면에 즉시 표시하고, Supabase 테이블 및 Storage에 일괄 적재합니다.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 16px;">
+      <div style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 8px; border: 1px dashed var(--border-color);">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #fff;">1. 외부 엑셀/CSV 파일 선택</label>
+        <input type="file" id="adminExcelFileInput" accept=".xlsx,.csv,.json" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
+      </div>
+      <div style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 8px; border: 1px dashed var(--border-color);">
+        <label style="display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #fff;">2. 첨부 이미지 파일 선택 (다중 선택 가능)</label>
+        <input type="file" id="adminImageFileInput" accept="image/*" multiple style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+      <button class="btn-secondary" onclick="parseAndPreviewAdminExcelData()">
+        🔍 파일 파싱 및 화면에 불러오기
+      </button>
+      <button class="btn-primary" onclick="saveAdminDataToSupabase()">
+        💾 Supabase DB 테이블 & Storage 일괄 저장
+      </button>
+    </div>
+
+    <!-- Excel Preview Container -->
+    <div id="adminExcelPreviewContainer" style="display: none; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; overflow-x: auto;">
+      <h4 style="font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan); margin-bottom: 10px;">📋 불러온 엑셀 데이터 및 이미지 미리보기</h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; color: #e2e8f0;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-color); color: var(--accent-cyan);">
+            <th style="padding: 8px;">명칭</th>
+            <th style="padding: 8px;">시대</th>
+            <th style="padding: 8px;">읍면동</th>
+            <th style="padding: 8px;">상세 설명</th>
+            <th style="padding: 8px;">생각할 거리</th>
+            <th style="padding: 8px;">Supabase 이미지</th>
+          </tr>
+        </thead>
+        <tbody id="adminExcelPreviewTbody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Citizen Submissions Management Section (Unapproved vs Approved) -->
   <div class="glass-card" style="margin-bottom: 28px;">
     <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 16px;">

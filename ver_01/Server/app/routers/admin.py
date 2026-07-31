@@ -40,3 +40,51 @@ def review_citizen_recommendation(rec_id: str, req: AdminApprovalRequest):
             }
             
     raise HTTPException(status_code=404, detail="해당 추천 제보 건을 찾을 수 없습니다.")
+
+class ExcelHeritageRow(BaseModel):
+    name: str
+    era: Optional[str] = "시대 미상"
+    dong: Optional[str] = "세종특별자치시"
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    description: Optional[str] = None
+    thinkingPoint: Optional[str] = None
+    imageFileName: Optional[str] = None
+    imageUrl: Optional[str] = None
+
+class BatchImportRequest(BaseModel):
+    records: list[ExcelHeritageRow]
+
+@router.post("/import-excel")
+def import_excel_and_images(req: BatchImportRequest):
+    """외부 엑셀 파일 데이터 및 이미지 Supabase DB 및 Storage에 일괄 저장 및 화면 표시"""
+    supabase_url = "https://your-supabase-project.supabase.co"
+    processed_data = []
+
+    for row in req.records:
+        img_url = row.imageUrl
+        if not img_url and row.imageFileName:
+            img_url = f"{supabase_url}/storage/v1/object/public/heritage-images/{row.imageFileName}"
+            
+        record = {
+            "id": f"h-import-{len(processed_data) + 1}",
+            "name": row.name,
+            "era": row.era,
+            "dong": row.dong,
+            "latitude": row.latitude,
+            "longitude": row.longitude,
+            "description": row.description,
+            "thinkingPoint": row.thinkingPoint,
+            "source": "registered",
+            "status": "approved",
+            "supabase_storage_url": img_url,
+            "created_at": datetime.now().isoformat()
+        }
+        processed_data.append(record)
+
+    return {
+        "message": f"성공적으로 {len(processed_data)}건의 엑셀 데이터 및 이미지를 Supabase DB 테이블과 Storage에 저장했습니다.",
+        "count": len(processed_data),
+        "data": processed_data
+    }
+

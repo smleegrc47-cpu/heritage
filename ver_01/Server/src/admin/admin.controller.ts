@@ -73,4 +73,25 @@ export class AdminController {
   async exportReport(@Body('format') format?: string) {
     return this.adminService.exportReport(format || 'pdf');
   }
+
+  @ApiOperation({ summary: '외부 엑셀 데이터 및 이미지 일괄 파싱/업로드 (Supabase DB & Storage 연동)' })
+  @Post('import-excel')
+  async importExcelData(
+    @Body('records')
+    records: Array<{
+      name: string;
+      era?: string;
+      dong?: string;
+      latitude?: number;
+      longitude?: number;
+      description?: string;
+      thinkingPoint?: string;
+      source?: string;
+      status?: string;
+      imageFileName?: string;
+      imageUrl?: string;
+    }>,
+  ) {
+    return this.adminService.importBatchHeritageData(records || []);
+  }
 }
