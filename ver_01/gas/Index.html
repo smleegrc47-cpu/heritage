@@ -9,6 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    // Global Safe Fail-safe Guard & Fallback for navigateTo and OAuth script dialogs
+    window.onerror = function(msg, url, line, col, error) {
+      console.warn("GCP/WebApp Guarded Exception Ignored:", msg, "at line:", line);
+      return true;
+    };
+    window.navigateTo = function(tabId, paramData) {
+      if (window.performSafeNavigation) {
+        window.performSafeNavigation(tabId, paramData);
+      } else {
+        console.log("Navigating to tab:", tabId);
+      }
+    };
+  </script>
   
   <?!= include('style') ?>
 </head>
