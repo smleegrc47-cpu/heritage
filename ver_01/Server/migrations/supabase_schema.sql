@@ -41,6 +41,20 @@ CREATE TABLE IF NOT EXISTS heritages (
   updated_at        TIMESTAMPTZ DEFAULT now()
 );
 
+-- 기존 테이블이 구버전으로 존재하는 경우 필수 신규 컬럼 자동 추가 (안전성 보장)
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS source VARCHAR(20) DEFAULT 'registered';
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending';
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS needs_improvement BOOLEAN DEFAULT false;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS thinking_point TEXT;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS like_count INT DEFAULT 0;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS naver_map_url TEXT;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS google_map_url TEXT;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS reported_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS report_reason TEXT;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS reviewer_note TEXT;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+
 -- 4. 문화유산 이미지 (heritage_images) 테이블 (Supabase Storage URL 매핑)
 CREATE TABLE IF NOT EXISTS heritage_images (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
