@@ -129,5 +129,13 @@
   <div id="toastContainer"></div>
 
   <?!= include('script') ?>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof navigateTo === 'function') {
+        navigateTo('home');
+      }
+    });
+  </script>
 </body>
 </html>
