@@ -65,14 +65,44 @@ class BatchImportRequest(BaseModel):
 
 @router.post("/import-excel")
 def import_excel_and_images(req: BatchImportRequest):
-    """서버(Server)에서 Supabase DB 및 Storage에 일괄 REST Bulk Insert 및 동기화 처리"""
+    """서버(Server)에서 Supabase DB 및 Storage에 중복 제외 일괄 REST Bulk Insert 및 동기화 처리"""
     supabase_url = settings.SUPABASE_URL or "https://nmzrxczcytkkwgpiseaj.supabase.co"
     supabase_key = settings.SUPABASE_KEY
 
+    # 1. Fetch existing heritage names from Supabase DB to prevent inserting duplicate records
+    existing_names = set()
+    if supabase_key and "your-supabase" not in supabase_key:
+        try:
+            get_url = f"{supabase_url}/rest/v1/heritages?select=name"
+            get_headers = {
+                "apikey": supabase_key,
+                "Authorization": f"Bearer {supabase_key}"
+            }
+            get_req = urllib.request.Request(get_url, headers=get_headers, method="GET")
+            with urllib.request.urlopen(get_req) as get_res:
+                if get_res.status == 200:
+                    existing_data = json.loads(get_res.read().decode("utf-8"))
+                    existing_names = set(item.get("name", "").strip() for item in existing_data if item.get("name"))
+        except Exception as e:
+            print(f"Fetch existing heritages notice: {e}")
+
     bulk_heritages = []
     metadata_map = []
+    seen_in_batch = set()
+    skipped_duplicates_count = 0
 
     for idx, row in enumerate(req.records):
+        raw_name = (row.name or "").strip()
+        if not raw_name:
+            continue
+
+        # Deduplicate against DB existing records & current batch
+        if raw_name in existing_names or raw_name in seen_in_batch:
+            skipped_duplicates_count += 1
+            continue
+
+        seen_in_batch.add(raw_name)
+
         img_url = row.imageUrl
         if not img_url and row.imageFileName:
             img_url = f"{supabase_url}/storage/v1/object/public/heritage-images/{row.imageFileName}"
@@ -83,7 +113,7 @@ def import_excel_and_images(req: BatchImportRequest):
         final_thinking = row.thinkingPoint or row.thinking_point or row.think_about or ""
 
         db_row = {
-            "name": row.name,
+            "name": raw_name,
             "era": row.era or "조선시대",
             "dong": final_dong,
             "latitude": final_lat,
@@ -102,7 +132,7 @@ def import_excel_and_images(req: BatchImportRequest):
 
     # Direct Supabase REST API Bulk Insert
     inserted_rows = []
-    if supabase_key and "your-supabase" not in supabase_key:
+    if bulk_heritages and supabase_key and "your-supabase" not in supabase_key:
         try:
             url = f"{supabase_url}/rest/v1/heritages"
             headers = {
@@ -118,7 +148,7 @@ def import_excel_and_images(req: BatchImportRequest):
                 if response.status in [200, 201]:
                     res_body = response.read().decode("utf-8")
                     inserted_rows = json.loads(res_body)
-                    print(f"✅ Supabase Bulk Insert Success: {len(inserted_rows)} records created in heritages table!")
+                    print(f"✅ Supabase Bulk Insert Success: {len(inserted_rows)} new unique records created in heritages table!")
 
                     # Bulk Insert images to heritage_images table
                     img_bulk = []
@@ -151,7 +181,7 @@ def import_excel_and_images(req: BatchImportRequest):
     for idx, row in enumerate(req.records):
         created_item = inserted_rows[idx] if idx < len(inserted_rows) else None
         rec_id = created_item.get("id") if created_item else f"supa-simu-{idx + 1}"
-        img_url = metadata_map[idx]["img_url"]
+        img_url = metadata_map[idx]["img_url"] if idx < len(metadata_map) else "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800"
 
         processed_data.append({
             "id": rec_id,
@@ -170,12 +200,15 @@ def import_excel_and_images(req: BatchImportRequest):
             "created_at": datetime.now().isoformat()
         })
 
-    is_real = len(inserted_rows) > 0
-    msg = f"✅ 실제 Supabase DB 테이블(heritages) 및 Storage에 총 {len(inserted_rows)}건의 데이터가 정식으로 적재되었습니다!" if is_real else f"⚠️ Supabase 적재 시뮬레이션 완료 (총 {len(processed_data)}건)."
+    if skipped_duplicates_count > 0:
+        msg = f"✅ 성공: 신규 데이터 {len(inserted_rows)}건 Supabase DB 및 Storage 이관 완료 (중복 데이터 {skipped_duplicates_count}건은 자동 제외되었습니다)."
+    else:
+        msg = f"✅ 성공: 총 {len(inserted_rows)}건의 문화유산 데이터와 이미지가 Supabase DB 및 Storage에 정식 적재되었습니다."
 
     return {
         "message": msg,
-        "count": len(inserted_rows) if is_real else len(processed_data),
+        "count": len(inserted_rows),
+        "skipped_duplicates": skipped_duplicates_count,
         "data": processed_data
     }
 
