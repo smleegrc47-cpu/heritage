@@ -37,23 +37,30 @@
   function fetchInitialData() {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
       google.script.run.withSuccessHandler(function(res) {
-        if (res && res.official) appState.officialHeritages = res.official;
-        else appState.officialHeritages = MOCK_OFFICIAL;
-        if (res && res.citizen) appState.citizenHeritages = res.citizen;
-        else appState.citizenHeritages = MOCK_CITIZEN;
-
+        if (res && res.official && res.official.length > 0) appState.officialHeritages = res.official;
+        if (res && res.citizen && res.citizen.length > 0) appState.citizenHeritages = res.citizen;
         initScreenViews();
       }).withFailureHandler(function(err) {
-        showToast("데이터 로딩 실패 (Mock 모드 실행): " + err);
-        appState.officialHeritages = MOCK_OFFICIAL;
-        appState.citizenHeritages = MOCK_CITIZEN;
-        initScreenViews();
+        fetchSupabaseDirectly();
       }).getInitialWebAppData();
     } else {
-      appState.officialHeritages = MOCK_OFFICIAL;
-      appState.citizenHeritages = MOCK_CITIZEN;
-      initScreenViews();
+      fetchSupabaseDirectly();
     }
+  }
+
+  function fetchSupabaseDirectly() {
+    fetch('/api/heritages')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (Array.isArray(data) && data.length > 0) {
+          appState.officialHeritages = data.filter(function(x) { return x.source !== 'citizen'; });
+          appState.citizenHeritages = data.filter(function(x) { return x.source === 'citizen'; });
+        }
+        initScreenViews();
+      })
+      .catch(function(err) {
+        initScreenViews();
+      });
   }
 
   function initScreenViews() {

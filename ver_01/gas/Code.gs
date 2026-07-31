@@ -98,63 +98,112 @@ function getSpreadsheet() {
 }
 
 /**
- * [GAS API] Initial WebApp Data Batch Fetch
+ * Query Supabase REST API directly for DB tables & Storage
+ */
+function getSupabaseData(tableName, query) {
+  var supabaseUrl = getProp("SUPABASE_URL", "https://your-supabase-project.supabase.co");
+  var supabaseKey = getProp("SUPABASE_KEY", "your-supabase-key");
+  
+  var url = supabaseUrl + "/rest/v1/" + tableName + (query ? ("?" + query) : "?select=*");
+  var options = {
+    method: "get",
+    headers: {
+      "apikey": supabaseKey,
+      "Authorization": "Bearer " + supabaseKey,
+      "Content-Type": "application/json"
+    },
+    muteHttpExceptions: true
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    if (response.getResponseCode() === 200) {
+      return JSON.parse(response.getContentText());
+    }
+  } catch (e) {
+    Logger.log("Supabase REST Fetch Error: " + e);
+  }
+  return null;
+}
+
+/**
+ * [GAS API] Initial WebApp Data Batch Fetch (Primary: Supabase DB & Storage, Fallback: Spreadsheet)
  */
 function getInitialWebAppData() {
   try {
-    var ss = getSpreadsheet();
     var officialList = [];
     var citizenList = [];
 
-    if (ss) {
-      // 1. Heritage_Official
-      var sheetOff = ss.getSheetByName(SHEET_NAMES.OFFICIAL);
-      if (sheetOff && sheetOff.getLastRow() > 1) {
-        var values = sheetOff.getDataRange().getValues();
-        var headers = values[0];
-        for (var i = 1; i < values.length; i++) {
-          var row = values[i];
-          officialList.push({
-            id: row[0] || ("h" + i),
-            name: row[1],
-            era: row[2],
-            era_normalized: row[2],
-            dong: row[3],
-            dong_eup_myeon: row[3],
-            lat: parseFloat(row[4]) || 36.48,
-            lng: parseFloat(row[5]) || 127.28,
-            latitude: parseFloat(row[4]) || 36.48,
-            longitude: parseFloat(row[5]) || 127.28,
-            description: row[6],
-            think_point: row[7],
-            thinkingPoint: row[7],
-            thinking_point: row[7],
-            image_url: row[8] || "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80",
-            parking_yn: row[9] || "Y",
-            restroom_yn: row[10] || "Y",
-            like_count: parseInt(row[11], 10) || 100
-          });
-        }
-      }
+    // 1. Primary: Fetch live Supabase DB records
+    var supaHeritages = getSupabaseData("heritages", "select=*,images:heritage_images(*)");
+    if (supaHeritages && supaHeritages.length > 0) {
+      supaHeritages.forEach(function(item, idx) {
+        var imgUrl = (item.images && item.images.length > 0 && item.images[0].image_url)
+          ? item.images[0].image_url
+          : (item.supabase_storage_url || item.image_url || "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80");
 
-      // 2. Heritage_Citizen
-      var sheetCit = ss.getSheetByName(SHEET_NAMES.CITIZEN);
-      if (sheetCit && sheetCit.getLastRow() > 1) {
-        var cValues = sheetCit.getDataRange().getValues();
-        for (var j = 1; j < cValues.length; j++) {
-          var crow = cValues[j];
-          citizenList.push({
-            id: crow[0] || ("cit-" + j),
-            name: crow[1],
-            image_url: crow[2] || "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80",
-            lat: parseFloat(crow[3]) || 36.48,
-            lng: parseFloat(crow[4]) || 127.28,
-            address: "세종특별자치시 소재지",
-            reason: crow[5],
-            status: crow[6] || "대기",
-            submitted_by: crow[8] || "user@sejong.go.kr",
-            like_count: 20
-          });
+        var rec = {
+          id: item.id || ("supa-db-" + (idx + 1)),
+          name: item.name,
+          era: item.era || "조선시대",
+          era_normalized: item.era || "조선시대",
+          dong: item.dong || item.dong_eup_myeon || "세종특별자치시",
+          dong_eup_myeon: item.dong || item.dong_eup_myeon || "세종특별자치시",
+          lat: parseFloat(item.latitude || item.lat) || 36.52,
+          lng: parseFloat(item.longitude || item.lng) || 127.27,
+          latitude: parseFloat(item.latitude || item.lat) || 36.52,
+          longitude: parseFloat(item.longitude || item.lng) || 127.27,
+          description: item.description || "문화유산 상세 소개",
+          think_point: item.thinking_point || item.thinkingPoint || item.think_about,
+          thinkingPoint: item.thinking_point || item.thinkingPoint || item.think_about,
+          thinking_point: item.thinking_point || item.thinkingPoint || item.think_about,
+          image_url: imgUrl,
+          supabaseStorageUrl: imgUrl,
+          source: item.source || "registered",
+          status: item.status || "approved",
+          parking_yn: "Y",
+          restroom_yn: "Y",
+          like_count: item.like_count || 100
+        };
+
+        if (rec.source === "citizen") {
+          citizenList.push(rec);
+        } else {
+          officialList.push(rec);
+        }
+      });
+    }
+
+    // 2. Fallback: Query Spreadsheet if Supabase table is empty
+    if (officialList.length === 0 && citizenList.length === 0) {
+      var ss = getSpreadsheet();
+      if (ss) {
+        var sheetOff = ss.getSheetByName(SHEET_NAMES.OFFICIAL);
+        if (sheetOff && sheetOff.getLastRow() > 1) {
+          var values = sheetOff.getDataRange().getValues();
+          for (var i = 1; i < values.length; i++) {
+            var row = values[i];
+            officialList.push({
+              id: row[0] || ("h" + i),
+              name: row[1],
+              era: row[2],
+              era_normalized: row[2],
+              dong: row[3],
+              dong_eup_myeon: row[3],
+              lat: parseFloat(row[4]) || 36.48,
+              lng: parseFloat(row[5]) || 127.28,
+              latitude: parseFloat(row[4]) || 36.48,
+              longitude: parseFloat(row[5]) || 127.28,
+              description: row[6],
+              think_point: row[7],
+              thinkingPoint: row[7],
+              thinking_point: row[7],
+              image_url: row[8] || "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80",
+              parking_yn: row[9] || "Y",
+              restroom_yn: row[10] || "Y",
+              like_count: parseInt(row[11], 10) || 100
+            });
+          }
         }
       }
     }
