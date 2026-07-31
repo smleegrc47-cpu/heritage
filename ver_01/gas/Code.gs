@@ -55,6 +55,33 @@ function getCloudRunBackendUrl() {
 }
 
 /**
+ * Standalone OAuth2 Service Helper (No External Library ID Needed)
+ */
+function getOAuth2Service(serviceName, clientId, clientSecret, scopes) {
+  return OAuth2.createService(serviceName || "SejongHeritageOAuth")
+    .setAuthorizationBaseUrl('https://accounts.google.com/o/oauth2/auth')
+    .setTokenUrl('https://accounts.google.com/o/oauth2/token')
+    .setClientId(clientId || getProp("OAUTH_CLIENT_ID", ""))
+    .setClientSecret(clientSecret || getProp("OAUTH_CLIENT_SECRET", ""))
+    .setCallbackFunction('authCallback')
+    .setPropertyStore(PropertiesService.getUserProperties())
+    .setScope(scopes || 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/spreadsheets');
+}
+
+/**
+ * OAuth2 Callback Handler Function
+ */
+function authCallback(request) {
+  var service = getOAuth2Service();
+  var authorized = service.handleCallback(request);
+  if (authorized) {
+    return HtmlService.createHtmlOutput('✅ OAuth2 인증이 성공적으로 완료되었습니다! 이 창을 닫고 앱으로 돌아가세요.');
+  } else {
+    return HtmlService.createHtmlOutput('❌ OAuth2 인증에 실패하였습니다. 다시 시도해 주세요.');
+  }
+}
+
+/**
  * Get Google Spreadsheet DB safely
  */
 function getSpreadsheet() {
