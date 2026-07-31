@@ -41,11 +41,16 @@ CREATE TABLE IF NOT EXISTS heritages (
   updated_at        TIMESTAMPTZ DEFAULT now()
 );
 
--- 기존 테이블이 구버전으로 존재하는 경우 필수 신규 컬럼 자동 추가 (안전성 보장)
+-- 기존 테이블이 구버전으로 존재하는 경우 모든 필수 신규 컬럼 자동 추가 (안전성 보장)
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS dong VARCHAR(50);
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS era VARCHAR(100);
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS thinking_point TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS source VARCHAR(20) DEFAULT 'registered';
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending';
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS needs_improvement BOOLEAN DEFAULT false;
-ALTER TABLE heritages ADD COLUMN IF NOT EXISTS thinking_point TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS like_count INT DEFAULT 0;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS naver_map_url TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS google_map_url TEXT;
@@ -53,6 +58,24 @@ ALTER TABLE heritages ADD COLUMN IF NOT EXISTS reported_by UUID REFERENCES users
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS report_reason TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS reviewer_note TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- 이전 버전 컬럼(dong_eup_myeon, lat, lng, think_about)이 존재하는 경우 값 자동 이관
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='heritages' AND column_name='dong_eup_myeon') THEN
+    UPDATE heritages SET dong = dong_eup_myeon WHERE dong IS NULL;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='heritages' AND column_name='lat') THEN
+    UPDATE heritages SET latitude = lat WHERE latitude IS NULL;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='heritages' AND column_name='lng') THEN
+    UPDATE heritages SET longitude = lng WHERE longitude IS NULL;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='heritages' AND column_name='think_about') THEN
+    UPDATE heritages SET thinking_point = think_about WHERE thinking_point IS NULL;
+  END IF;
+END $$;
+
 
 
 -- 4. 문화유산 이미지 (heritage_images) 테이블 (Supabase Storage URL 매핑)
