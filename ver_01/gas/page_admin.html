@@ -201,6 +201,9 @@
     }
   }
 
+  // Globally expose renderAdminView
+  window.renderAdminView = renderAdminView;
+
   function populateAdminData() {
     var pendingList = appState.citizenHeritages.filter(function(h) { return h.status === '대기'; });
     var approvedList = appState.citizenHeritages.filter(function(h) { return h.status === '승인'; });

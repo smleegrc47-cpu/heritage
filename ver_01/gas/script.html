@@ -135,7 +135,13 @@
         renderReviewView(paramData.course);
       }
     }
-    if (tabId === 'admin') renderAdminView();
+    if (tabId === 'admin') {
+      if (typeof renderAdminView === 'function') {
+        renderAdminView();
+      } else if (typeof window.renderAdminView === 'function') {
+        window.renderAdminView();
+      }
+    }
 
     // Scroll restoration
     if (mainEl && appState.scrollPositionMap[tabId]) {
