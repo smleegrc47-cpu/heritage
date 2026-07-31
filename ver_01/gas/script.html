@@ -1,0 +1,191 @@
+<script>
+  /* script.html - 공통 클라이언트 JS (SPA 라우팅, google.script.run 호출, 상태 관리) */
+
+  // Global State Stores
+  var appState = {
+    currentTab: 'home',
+    officialHeritages: [],
+    citizenHeritages: [],
+    selectedHeritageDetail: null,
+    courseList: [], // { id, name, era, dong, lat, lng, image_url }
+    savedCourses: [],
+    myCitizenSubmissions: [],
+    likesMap: {},
+    previousTab: 'home',
+    scrollPositionMap: {}
+  };
+
+  // Default Mock Dataset (Fallback when Sheet/Backend is loading or standalone)
+  var MOCK_OFFICIAL = [
+    { id: "h1", name: "세종 연기아문", era: "조선시대 초", era_normalized: "조선 전기", dong_eup_myeon: "연기면", address: "세종특별자치시 연기면 연기리 31-1", lat: 36.5200, lng: 127.2700, image_url: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80", description: "조선시대 연기현의 관아 대문건물로 1978년 복원되었으며 세종시 역사의 상징적 유적입니다.", think_point: "조선시대 지방 관아의 입지와 옛 행정구역(연기현)이 현재 행정중심복합도시 세종으로 변모해온 과정에 대해 생각해봅시다.", parking_yn: "Y", restroom_yn: "Y", like_count: 142 },
+    { id: "h2", name: "세종 비암사 극락보전", era: "조선전기", era_normalized: "조선 전기", dong_eup_myeon: "전의면", address: "세종특별자치시 전의면 다방리 512", lat: 36.6300, lng: 127.2000, image_url: "https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&q=80", description: "운주산 기슭 비암사에 위치한 극락보전으로 웅장한 불전 지붕과 고풍스러운 단청이 특징입니다.", think_point: "깊은 산속 아늑한 비암사 산사에서 세종시민들이 마음의 평온을 찾고 전통 문화를 체험하는 의미를 곱씹어봅시다.", parking_yn: "Y", restroom_yn: "Y", like_count: 289 },
+    { id: "h3", name: "초려 이유태 역사공원", era: "조선 후기", era_normalized: "조선 후기", dong_eup_myeon: "어진동", address: "세종특별자치시 어진동 580", lat: 36.5050, lng: 127.2600, image_url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80", description: "조선 후기 저명한 유학자 초려 이유태 선생의 학문과 정신을 기념하기 위해 조성된 한옥 테마공원입니다.", think_point: "현대적 신도시 아파트 단지 사이에 조화롭게 우뚝 선 전통 한옥 공원이 주는 정서적 쉼터의 소중함을 느껴봅시다.", parking_yn: "Y", restroom_yn: "Y", like_count: 195 },
+    { id: "h4", name: "합강리 선사유적", era: "청동기시대", era_normalized: "청동기시대", dong_eup_myeon: "연동면", address: "세종특별자치시 동면 합강리", lat: 36.4900, lng: 127.3200, image_url: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=600&q=80", description: "금강과 미호천이 합류하는 지점에 위치한 청동기시대 집터 및 선사 인류의 생활 터전입니다.", think_point: "두 강 줄기가 합쳐지는 비옥한 땅에서 청동기인들이 공동체를 형성하며 살아갔던 자연 환경의 지혜를 생각해봅시다.", parking_yn: "N", restroom_yn: "N", like_count: 88 },
+    { id: "h5", name: "세종 영평사 구절초길", era: "조선 후기", era_normalized: "조선 후기", dong_eup_myeon: "장군면", address: "세종특별자치시 장군면 영평사길 124", lat: 36.5100, lng: 127.2300, image_url: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&q=80", description: "조선시대 사찰로 가을철 하얀 구절초 꽃이 온 산사를 덮어 장관을 이루는 힐링 명소입니다.", think_point: "자연 경관과 어우러진 산사 문화유산이 세종시민에게 선사하는 생태적·정서적 가치에 대해 생각해봅시다.", parking_yn: "Y", restroom_yn: "Y", like_count: 312 }
+  ];
+
+  var MOCK_CITIZEN = [
+    { id: "cit-1", name: "금남면 구 즉석 우물터", address: "세종특별자치시 금남면 용포리 12", lat: 36.4600, lng: 127.2800, reason: "옛 조선시대 금남 지방 마을 주민들의 오아시스 역할을 했던 역사적 우물터로 보존 가치가 높습니다.", status: "승인", like_count: 45, image_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80", submitted_by: "user@sejong.go.kr" },
+    { id: "cit-2", name: "연동면 고전 방앗간 건축물", address: "세종특별자치시 연동면 내판리 45", lat: 36.5300, lng: 127.3100, reason: "근대 1950년대 농촌 방앗간의 목조 구조와 제분 기계가 보존되어 있는 근대 생활문화유산입니다.", status: "대기", like_count: 18, image_url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&q=80", submitted_by: "user@sejong.go.kr" }
+  ];
+
+  // Initialize App on Load
+  window.onload = function() {
+    fetchInitialData();
+  };
+
+  function fetchInitialData() {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(function(res) {
+        if (res && res.official) appState.officialHeritages = res.official;
+        else appState.officialHeritages = MOCK_OFFICIAL;
+        if (res && res.citizen) appState.citizenHeritages = res.citizen;
+        else appState.citizenHeritages = MOCK_CITIZEN;
+
+        initScreenViews();
+      }).withFailureHandler(function(err) {
+        showToast("데이터 로딩 실패 (Mock 모드 실행): " + err);
+        appState.officialHeritages = MOCK_OFFICIAL;
+        appState.citizenHeritages = MOCK_CITIZEN;
+        initScreenViews();
+      }).getInitialWebAppData();
+    } else {
+      appState.officialHeritages = MOCK_OFFICIAL;
+      appState.citizenHeritages = MOCK_CITIZEN;
+      initScreenViews();
+    }
+  }
+
+  function initScreenViews() {
+    renderHomeView();
+    renderStatusOfficialView();
+    renderStatusCitizenView();
+    renderSearchView();
+    renderMyPageView();
+    updateCountsSummary();
+  }
+
+  // SPA Tab Routing Helper
+  function navigateTo(tabId, paramData) {
+    var mainEl = document.querySelector('.gas-main');
+    if (mainEl) {
+      appState.scrollPositionMap[appState.currentTab] = mainEl.scrollTop;
+    }
+    appState.previousTab = appState.currentTab;
+    appState.currentTab = tabId;
+
+    document.querySelectorAll('.tab-section').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    document.querySelectorAll('.gas-nav-item').forEach(function(el) {
+      el.classList.remove('active');
+    });
+
+    var targetTabEl = document.getElementById('page_' + tabId);
+    if (targetTabEl) {
+      targetTabEl.classList.add('active');
+    }
+
+    var navBtn = document.getElementById('nav_' + tabId);
+    if (navBtn) {
+      navBtn.classList.add('active');
+    }
+
+    // Tab specific trigger actions
+    if (tabId === 'home') renderHomeView();
+    if (tabId === 'status_official') renderStatusOfficialView();
+    if (tabId === 'status_citizen') renderStatusCitizenView();
+    if (tabId === 'search') {
+      renderSearchView();
+      if (paramData && paramData.query) {
+        var qInput = document.getElementById('searchQueryInput');
+        if (qInput) {
+          qInput.value = paramData.query;
+          executeSearch();
+        }
+      }
+    }
+    if (tabId === 'search_detail') {
+      if (paramData && paramData.item) {
+        appState.selectedHeritageDetail = paramData.item;
+        renderSearchDetailView(paramData.item);
+      }
+    }
+    if (tabId === 'course') {
+      if (paramData && paramData.addItem) {
+        addHeritageToCourse(paramData.addItem);
+      }
+      renderCourseView();
+    }
+    if (tabId === 'mypage') renderMyPageView();
+    if (tabId === 'mypage_detail') {
+      if (paramData && paramData.course) {
+        renderMyPageDetailView(paramData.course);
+      }
+    }
+    if (tabId === 'review') {
+      if (paramData && paramData.course) {
+        renderReviewView(paramData.course);
+      }
+    }
+    if (tabId === 'admin') renderAdminView();
+
+    // Scroll restoration
+    if (mainEl && appState.scrollPositionMap[tabId]) {
+      mainEl.scrollTop = appState.scrollPositionMap[tabId];
+    } else if (mainEl) {
+      mainEl.scrollTop = 0;
+    }
+  }
+
+  function goBack() {
+    if (appState.previousTab) {
+      navigateTo(appState.previousTab);
+    } else {
+      navigateTo('home');
+    }
+  }
+
+  // Toast Feedback Helper
+  function showToast(msg) {
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      document.body.appendChild(container);
+    }
+    var toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = msg;
+    container.appendChild(toast);
+    setTimeout(function() {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
+  }
+
+  // Like Toggle Handler
+  function toggleLike(id, event) {
+    if (event) event.stopPropagation();
+    var current = appState.likesMap[id] || 0;
+    appState.likesMap[id] = current + 1;
+    showToast("❤️ 좋아요를 표했습니다!");
+
+    // Update UI elements dynamically
+    document.querySelectorAll('.like-count-' + id).forEach(function(el) {
+      var baseVal = parseInt(el.getAttribute('data-base-likes') || '0', 10);
+      el.innerText = baseVal + appState.likesMap[id];
+    });
+  }
+
+  function updateCountsSummary() {
+    var officialCount = appState.officialHeritages.length;
+    var approvedCitizenCount = appState.citizenHeritages.filter(function(h) { return h.status === '승인'; }).length;
+
+    document.querySelectorAll('.count-official-text').forEach(function(el) {
+      el.innerText = officialCount;
+    });
+    document.querySelectorAll('.count-citizen-text').forEach(function(el) {
+      el.innerText = approvedCitizenCount;
+    });
+  }
+</script>
