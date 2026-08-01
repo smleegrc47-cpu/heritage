@@ -210,7 +210,9 @@
 
     // Bind navigateTo globally to safeguard against GCP Console / OAuth dialog script errors
     window.performSafeNavigation = navigateTo;
-    window.navigateTo = navigateTo;
+    if (typeof window.navigateTo !== 'function') {
+        window.navigateTo = navigateTo;
+    }
 
     function goBack() {
         if (appState.previousTab) {

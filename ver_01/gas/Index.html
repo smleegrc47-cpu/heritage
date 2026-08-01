@@ -52,10 +52,6 @@
     window.renderAdminView = window.renderAdminView || function() {};
 
     window.navigateTo = function(tabId, paramData) {
-      if (typeof window.performSafeNavigation === 'function') {
-        window.performSafeNavigation(tabId, paramData);
-        return;
-      }
       console.log("Navigating to tab:", tabId);
       var mainEl = document.querySelector('.gas-main');
       if (mainEl && window.appState) {
