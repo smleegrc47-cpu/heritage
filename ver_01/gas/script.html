@@ -105,16 +105,16 @@
         if (typeof window.renderAdminViewImpl === 'function') window.renderAdminViewImpl();
     }
     function openCitizenReportModal() {
-        if (typeof window.openCitizenReportModal === 'function') {
-            window.openCitizenReportModal();
+        if (typeof window.openCitizenReportModalImpl === 'function') {
+            window.openCitizenReportModalImpl();
         } else {
             var modal = document.getElementById('citizenReportModal');
             if (modal) modal.style.display = 'flex';
         }
     }
     function closeCitizenReportModal() {
-        if (typeof window.closeCitizenReportModal === 'function') {
-            window.closeCitizenReportModal();
+        if (typeof window.closeCitizenReportModalImpl === 'function') {
+            window.closeCitizenReportModalImpl();
         } else {
             var modal = document.getElementById('citizenReportModal');
             if (modal) modal.style.display = 'none';

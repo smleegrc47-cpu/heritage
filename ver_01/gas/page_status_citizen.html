@@ -196,7 +196,7 @@
   window.renderStatusCitizenViewImpl = renderStatusCitizenView;
   window.renderStatusCitizenView = renderStatusCitizenView;
 
-  window.openCitizenReportModal = function () {
+  window.openCitizenReportModalImpl = function () {
     var modal = document.getElementById('citizenReportModal');
     if (!modal) {
       console.error('ID가 citizenReportModal인 모달 요소가 없습니다.');
@@ -204,13 +204,15 @@
     }
     modal.style.display = 'flex';
   };
+  window.openCitizenReportModal = window.openCitizenReportModalImpl;
 
-  window.closeCitizenReportModal = function () {
+  window.closeCitizenReportModalImpl = function () {
     var modal = document.getElementById('citizenReportModal');
     if (modal) {
       modal.style.display = 'none';
     }
   };
+  window.closeCitizenReportModal = window.closeCitizenReportModalImpl;
 
   function acquireCurrentGPSLocation() {
     if (navigator.geolocation) {
