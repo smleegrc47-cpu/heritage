@@ -111,13 +111,21 @@
       grid.innerHTML = top10.map(function(h, idx) {
         var statusBadgeClass = (h.status === '승인' || h.status === 'approved') ? 'badge-citizen' : 'badge-era';
         var statusText = h.status || '신청중';
-        var imgUrl = h.image_url || h.photo_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80';
+        var rawPhoto = h.photo_url || h.image_url;
+        var hasPhoto = rawPhoto && typeof rawPhoto === 'string' && rawPhoto.trim() !== '' && rawPhoto !== 'null' && rawPhoto !== 'undefined';
+        var photoHtml = hasPhoto
+          ? `<img src="${rawPhoto}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" alt="citizen_recommendation" />`
+          : `<div style="width: 100%; height: 160px; background: rgba(255, 255, 255, 0.04); border: 1px dashed var(--border-color); border-radius: var(--radius-md); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.88rem; font-weight: 600;">
+               <span style="font-size: 1.6rem; margin-bottom: 4px;">📷</span>
+               <span>사진 없음</span>
+             </div>`;
+
         var itemAddress = h.address || h.dong || '세종특별자치시';
         var itemReason = h.reason || h.description || h.thinking_point || '시민 제보 문화유산';
 
         return `
           <div class="glass-card">
-            <img src="${imgUrl}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" alt="citizen_recommendation" />
+            ${photoHtml}
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span class="badge ${statusBadgeClass}">🌱 시민 제보 (${statusText})</span>
               <button class="btn-like" onclick="toggleLike('${h.id || idx}', event)">
