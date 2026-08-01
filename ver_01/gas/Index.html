@@ -38,10 +38,53 @@
     window.renderAdminView = window.renderAdminView || function() {};
 
     window.navigateTo = function(tabId, paramData) {
-      if (window.performSafeNavigation) {
+      if (typeof window.performSafeNavigation === 'function') {
         window.performSafeNavigation(tabId, paramData);
-      } else {
-        console.log("Navigating to tab:", tabId);
+        return;
+      }
+      console.log("Navigating to tab:", tabId);
+      var mainEl = document.querySelector('.gas-main');
+      if (mainEl && window.appState) {
+        window.appState.scrollPositionMap = window.appState.scrollPositionMap || {};
+        window.appState.scrollPositionMap[window.appState.currentTab] = mainEl.scrollTop;
+      }
+      if (window.appState) {
+        window.appState.previousTab = window.appState.currentTab;
+        window.appState.currentTab = tabId;
+      }
+
+      var sections = document.querySelectorAll('.tab-section');
+      for (var i = 0; i < sections.length; i++) {
+        sections[i].classList.remove('active');
+        sections[i].style.display = 'none';
+      }
+
+      var navBtns = document.querySelectorAll('.gas-nav-item');
+      for (var j = 0; j < navBtns.length; j++) {
+        navBtns[j].classList.remove('active');
+      }
+
+      var targetTabEl = document.getElementById('page_' + tabId);
+      if (targetTabEl) {
+        targetTabEl.classList.add('active');
+        targetTabEl.style.display = 'block';
+      }
+
+      var navBtn = document.getElementById('nav_' + tabId);
+      if (navBtn) {
+        navBtn.classList.add('active');
+      }
+
+      try {
+        if (tabId === 'home' && typeof window.renderHomeView === 'function') window.renderHomeView();
+        if (tabId === 'status_official' && typeof window.renderStatusOfficialView === 'function') window.renderStatusOfficialView();
+        if (tabId === 'status_citizen' && typeof window.renderStatusCitizenView === 'function') window.renderStatusCitizenView();
+        if (tabId === 'search' && typeof window.renderSearchView === 'function') window.renderSearchView();
+        if (tabId === 'course' && typeof window.renderCourseView === 'function') window.renderCourseView();
+        if (tabId === 'mypage' && typeof window.renderMyPageView === 'function') window.renderMyPageView();
+        if (tabId === 'admin' && typeof window.renderAdminView === 'function') window.renderAdminView();
+      } catch (err) {
+        console.warn('Tab view render notice:', err);
       }
     };
   </script>
