@@ -137,15 +137,40 @@ function fetchHeritagesGAS() {
   return { status: "error", message: "Supabase DB 조회 결과가 없습니다.", data: [] };
 }
 
-/**
- * Fetch top 10 latest citizen recommendations strictly from citizen_recommendations table
- */
 function fetchCitizenRecommendationsGAS() {
   var data = getSupabaseData("citizen_recommendations", "select=*&limit=10");
   if (data && Array.isArray(data)) {
     return { status: "success", data: data };
   }
   return { status: "error", message: "시민제보유산 데이터가 없습니다.", data: [] };
+}
+
+/**
+ * Increment heart column for citizen_recommendations in Supabase DB
+ */
+function incrementCitizenHeartGAS(id, newHeart) {
+  var supabaseUrl = getProp("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co");
+  var supabaseKey = getProp("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw");
+
+  var url = supabaseUrl + "/rest/v1/citizen_recommendations?id=eq." + encodeURIComponent(id);
+  var options = {
+    method: "patch",
+    headers: {
+      "apikey": supabaseKey,
+      "Authorization": "Bearer " + supabaseKey,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation"
+    },
+    payload: JSON.stringify({ heart: newHeart }),
+    muteHttpExceptions: true
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    return { status: "success", code: response.getResponseCode() };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
 }
 
 /**

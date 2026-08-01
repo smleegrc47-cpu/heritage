@@ -239,18 +239,53 @@
         }, 3000);
     }
 
-    // Like Toggle Handler
+    // Like Toggle Handler (Updates local UI & Syncs heart count +1 to Supabase DB)
     function toggleLike(id, event) {
         if (event) event.stopPropagation();
         var current = appState.likesMap[id] || 0;
         appState.likesMap[id] = current + 1;
         showToast("❤️ 좋아요를 표했습니다!");
 
+        var targetNewHeart = null;
+
         // Update UI elements dynamically
         document.querySelectorAll('.like-count-' + id).forEach(function (el) {
             var baseVal = parseInt(el.getAttribute('data-base-likes') || '0', 10);
-            el.innerText = baseVal + appState.likesMap[id];
+            targetNewHeart = baseVal + appState.likesMap[id];
+            el.innerText = targetNewHeart;
         });
+
+        if (id && targetNewHeart !== null) {
+            syncHeartToSupabase(id, targetNewHeart);
+        }
+    }
+
+    function syncHeartToSupabase(id, newHeart) {
+        var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
+        var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
+
+        fetch(supabaseUrl + '/rest/v1/citizen_recommendations?id=eq.' + encodeURIComponent(id), {
+            method: 'PATCH',
+            headers: {
+                'apikey': supabaseKey,
+                'Authorization': 'Bearer ' + supabaseKey,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({ heart: newHeart })
+        })
+        .then(function(res) {
+            if (res.ok) {
+                console.log('Supabase citizen_recommendations heart updated to', newHeart, 'for id:', id);
+            }
+        })
+        .catch(function(err) {
+            console.warn('Supabase heart sync notice:', err);
+        });
+
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run.incrementCitizenHeartGAS(id, newHeart);
+        }
     }
 
     function updateCountsSummary() {

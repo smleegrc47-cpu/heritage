@@ -132,3 +132,25 @@ def get_my_recommendations(user_id: str):
     """내가 추천한 문화유산 목록 및 등재 피드백 상태 조회"""
     records = [normalize_citizen_record(r) for r in CITIZEN_RECOMMENDATIONS_DB]
     return [r for r in records if r["user_id"] == user_id or r["submitted_by"] == user_id]
+
+@router.post("/api/citizen-recommendations/{rec_id}/heart")
+def increment_citizen_heart(rec_id: str, heart_count: Optional[int] = None):
+    """시민 제보 유산 좋아요(heart) 1증가 및 수치 동기화"""
+    supabase = get_supabase()
+    if supabase:
+        try:
+            if heart_count is not None:
+                new_val = heart_count
+            else:
+                curr_res = supabase.table("citizen_recommendations").select("heart").eq("id", rec_id).execute()
+                curr_val = 0
+                if curr_res.data and len(curr_res.data) > 0:
+                    curr_val = curr_res.data[0].get("heart") or 0
+                new_val = curr_val + 1
+
+            res = supabase.table("citizen_recommendations").update({"heart": new_val}).eq("id", rec_id).execute()
+            return {"status": "success", "id": rec_id, "heart": new_val}
+        except Exception as e:
+            print(f"Error updating heart for {rec_id}: {e}")
+            return {"status": "error", "message": str(e)}
+    return {"status": "error", "message": "Supabase not connected"}
