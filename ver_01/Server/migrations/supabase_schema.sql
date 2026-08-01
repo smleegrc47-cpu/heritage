@@ -61,6 +61,9 @@ ALTER TABLE heritages ADD COLUMN IF NOT EXISTS report_reason TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS reviewer_note TEXT;
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
+-- citizen_recommendations 테이블 heart(좋아요) 컬럼 자동 추가
+ALTER TABLE citizen_recommendations ADD COLUMN IF NOT EXISTS heart INT DEFAULT 0;
+
 -- 이전 버전 컬럼(dong_eup_myeon, lat, lng, think_about)이 존재하는 경우 값 자동 이관
 DO $$
 BEGIN

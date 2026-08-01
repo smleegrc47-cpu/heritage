@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS citizen_recommendations (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(50) DEFAULT '신청중' CHECK (status IN ('신청중', '승인', '반려')),
     recommend_count INT DEFAULT 1,
+    heart INT DEFAULT 0,
     feedback TEXT DEFAULT '담당자 현장 실사 및 확인 대기 중',
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP WITH TIME ZONE,
