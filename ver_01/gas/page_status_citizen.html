@@ -226,13 +226,42 @@
     }
   }
 
-  function submitCitizenHeritageForm(e) {
+  async function uploadCitizenPhotoToSupabaseStorage(file) {
+    var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
+    var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
+    var bucketName = 'heritage-images';
+
+    var cleanName = (file.name || 'photo.jpg').replace(/[^a-zA-Z0-9_\.\-]/g, '_');
+    var safeFileName = 'cit_' + Date.now() + '_' + cleanName;
+    var uploadUrl = supabaseUrl + '/storage/v1/object/' + bucketName + '/' + safeFileName;
+
+    var response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': 'Bearer ' + supabaseKey,
+        'Content-Type': file.type || 'image/jpeg',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+
+    if (response.ok || response.status === 200 || response.status === 201) {
+      return supabaseUrl + '/storage/v1/object/public/' + bucketName + '/' + safeFileName;
+    } else {
+      console.warn('Supabase Storage photo upload HTTP status:', response.status);
+      return null;
+    }
+  }
+
+  async function submitCitizenHeritageForm(e) {
     e.preventDefault();
     var name = document.getElementById('citFormName').value.trim();
     var address = document.getElementById('citFormAddress').value.trim();
     var reason = document.getElementById('citFormReason').value.trim();
     var lat = parseFloat(document.getElementById('citFormLat').value) || 36.4800;
     var lng = parseFloat(document.getElementById('citFormLng').value) || 127.2800;
+    var photoInput = document.getElementById('citFormPhoto');
 
     if (!name) {
       alert('문화유산 명칭을 입력해 주세요.');
@@ -247,19 +276,29 @@
       return;
     }
 
+    var uploadedPhotoUrl = null;
+    if (photoInput && photoInput.files && photoInput.files.length > 0) {
+      showToast("☁️ 1/2: 선택한 이미지를 Supabase Storage에 업로드하고 있습니다...");
+      try {
+        uploadedPhotoUrl = await uploadCitizenPhotoToSupabaseStorage(photoInput.files[0]);
+      } catch (err) {
+        console.warn('Photo upload exception:', err);
+      }
+    }
+
     var newRecord = {
       name: name,
       address: address,
       reason: reason,
       lat: lat,
       lng: lng,
-      photo_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80",
+      photo_url: uploadedPhotoUrl,
       status: "신청중",
       recommend_count: 1
     };
 
     closeCitizenReportModal();
-    showToast("☁️ Supabase DB(citizen_recommendations)에 제보서를 저장하고 있습니다...");
+    showToast("☁️ 2/2: Supabase DB(citizen_recommendations)에 제보서를 저장하고 있습니다...");
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
       google.script.run
