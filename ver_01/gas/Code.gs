@@ -533,20 +533,12 @@ function submitCitizenRecommendationGAS(data) {
     var payload = {
       name: nameVal,
       address: addressVal,
-      dong: addressVal,
       reason: reasonVal,
-      description: reasonVal,
-      thinking_point: reasonVal,
-      era: data.era || "조선시대",
       lat: latVal,
-      latitude: latVal,
       lng: lngVal,
-      longitude: lngVal,
-      image_url: imgUrl,
       photo_url: imgUrl,
       status: data.status || "신청중",
-      like_count: 1,
-      submitted_by: userEmail
+      recommend_count: 1
     };
 
     var options = {

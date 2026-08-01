@@ -68,23 +68,12 @@ def submit_citizen_recommendation(data: CitizenRecommendationSubmit):
     raw_record = {
         "name": data.name,
         "address": address_val,
-        "dong": address_val,
-        "photo_url": photo_url,
-        "image_url": photo_url,
-        "lat": lat_val,
-        "latitude": lat_val,
-        "lng": lng_val,
-        "longitude": lng_val,
         "reason": reason_val,
-        "description": reason_val,
-        "thinking_point": reason_val,
-        "era": "조선시대",
-        "user_id": user_val,
-        "submitted_by": user_val,
+        "lat": lat_val,
+        "lng": lng_val,
+        "photo_url": photo_url,
         "status": "신청중",
-        "like_count": 1,
-        "recommend_count": 1,
-        "created_at": datetime.now().isoformat()
+        "recommend_count": 1
     }
 
     supabase = get_supabase()
