@@ -115,11 +115,11 @@ def get_citizen_recommendations(
     status: Optional[str] = Query(None, description="신청중 / 승인 / 반려 / pending / approved"),
     limit: Optional[int] = Query(10, description="최신 항목 조회 수 (기본 10개)")
 ):
-    """시민 추천 목록 조회 (Supabase DB `citizen_recommendations` 테이블 최신 10개 레코드 연동)"""
+    """시민 추천 목록 조회 (Supabase DB `citizen_recommendations` 테이블 연동)"""
     supabase = get_supabase()
     if supabase:
         try:
-            query = supabase.table("citizen_recommendations").select("*").order("created_at", desc=True)
+            query = supabase.table("citizen_recommendations").select("*")
             if status:
                 query = query.eq("status", status)
             if limit:

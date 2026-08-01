@@ -141,7 +141,7 @@ function fetchHeritagesGAS() {
  * Fetch top 10 latest citizen recommendations strictly from citizen_recommendations table
  */
 function fetchCitizenRecommendationsGAS() {
-  var data = getSupabaseData("citizen_recommendations", "select=*&order=created_at.desc&limit=10");
+  var data = getSupabaseData("citizen_recommendations", "select=*&limit=10");
   if (data && Array.isArray(data)) {
     return { status: "success", data: data };
   }

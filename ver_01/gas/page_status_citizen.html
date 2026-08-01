@@ -158,14 +158,19 @@
     var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
     var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
 
-    fetch(supabaseUrl + '/rest/v1/citizen_recommendations?select=*&order=created_at.desc&limit=10', {
+    fetch(supabaseUrl + '/rest/v1/citizen_recommendations?select=*&limit=10', {
       method: 'GET',
       headers: {
         'apikey': supabaseKey,
         'Authorization': 'Bearer ' + supabaseKey
       }
     })
-    .then(function(res) { return res.json(); })
+    .then(function(res) {
+      if (!res.ok) {
+        throw new Error('Supabase HTTP ' + res.status);
+      }
+      return res.json();
+    })
     .then(function(data) {
       if (Array.isArray(data)) {
         callback(data);
