@@ -114,31 +114,29 @@
         var rawPhoto = h.photo_url || h.image_url;
         var hasPhoto = rawPhoto && typeof rawPhoto === 'string' && rawPhoto.trim() !== '' && rawPhoto !== 'null' && rawPhoto !== 'undefined';
         var photoHtml = hasPhoto
-          ? `<img src="${rawPhoto}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" alt="citizen_recommendation" />`
-          : `<div style="width: 100%; height: 160px; background: rgba(255, 255, 255, 0.04); border: 1px dashed var(--border-color); border-radius: var(--radius-md); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.88rem; font-weight: 600;">
-               <span style="font-size: 1.6rem; margin-bottom: 4px;">📷</span>
-               <span>사진 없음</span>
-             </div>`;
+          ? '<img src="' + rawPhoto + '" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" alt="citizen_recommendation" />'
+          : '<div style="width: 100%; height: 160px; background: rgba(255, 255, 255, 0.04); border: 1px dashed var(--border-color); border-radius: var(--radius-md); margin-bottom: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.88rem; font-weight: 600;"><span style="font-size: 1.6rem; margin-bottom: 4px;">📷</span><span>사진 없음</span></div>';
 
         var itemAddress = h.address || h.dong || '세종특별자치시';
         var itemReason = h.reason || h.description || h.thinking_point || '시민 제보 문화유산';
+        var cardId = h.id || idx;
+        var likeCount = h.like_count || h.recommend_count || 1;
+        var titleName = h.name || '미정 유산명';
 
-        return `
-          <div class="glass-card">
-            ${photoHtml}
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="badge ${statusBadgeClass}">🌱 시민 제보 (${statusText})</span>
-              <button class="btn-like" onclick="toggleLike('${h.id || idx}', event)">
-                ❤️ <span class="like-count-${h.id || idx}">${h.like_count || h.recommend_count || 1}</span>
-              </button>
-            </div>
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">${h.name || '미정 유산명'}</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">📍 ${itemAddress}</p>
-            <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; height: 38px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-              ${itemReason}
-            </p>
-          </div>
-        `;
+        return '<div class="glass-card">' +
+            photoHtml +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+              '<span class="badge ' + statusBadgeClass + '">🌱 시민 제보 (' + statusText + ')</span>' +
+              '<button class="btn-like" onclick="toggleLike(\'' + cardId + '\', event)">' +
+                '❤️ <span class="like-count-' + cardId + '">' + likeCount + '</span>' +
+              '</button>' +
+            '</div>' +
+            '<h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">' + titleName + '</h3>' +
+            '<p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">📍 ' + itemAddress + '</p>' +
+            '<p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; height: 38px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">' +
+              itemReason +
+            '</p>' +
+          '</div>';
       }).join('');
     }
 
