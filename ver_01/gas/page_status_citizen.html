@@ -127,16 +127,17 @@
         var itemAddress = h.address || h.dong || '세종특별자치시';
         var itemReason = h.reason || h.description || h.thinking_point || '시민 제보 문화유산';
         var cardId = h.id || idx;
-        var baseHeart = (h.heart !== undefined && h.heart !== null) ? h.heart : (h.like_count || h.recommend_count || 1);
-        var currentHeart = baseHeart + (appState.likesMap[cardId] || 0);
         var titleName = h.name || '미정 유산명';
+        var safeName = titleName.replace(/'/g, "\\'");
+        var baseHeart = (h.heart !== undefined && h.heart !== null) ? h.heart : (h.like_count || h.recommend_count || 1);
+        var currentHeart = baseHeart + (appState.likesMap[cardId] || appState.likesMap[titleName] || 0);
 
         return '<div class="glass-card">' +
             photoHtml +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
               '<span class="badge ' + statusBadgeClass + '">🌱 시민 제보 (' + statusText + ')</span>' +
-              '<button class="btn-like" onclick="toggleLike(\'' + cardId + '\', event)">' +
-                '❤️ <span class="like-count-' + cardId + '" data-base-likes="' + baseHeart + '">' + currentHeart + '</span>' +
+              '<button class="btn-like" onclick="toggleLike(\'' + cardId + '\', event, \'' + safeName + '\')">' +
+                '❤️ <span class="like-count-' + cardId + '" data-base-likes="' + baseHeart + '" data-item-name="' + safeName + '">' + currentHeart + '</span>' +
               '</button>' +
             '</div>' +
             '<h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">' + titleName + '</h3>' +

@@ -240,68 +240,98 @@
     }
 
     // Like Toggle Handler (Updates local UI & Syncs heart count +1 to Supabase DB)
-    function toggleLike(id, event) {
+    function toggleLike(id, event, itemName) {
         if (event) event.stopPropagation();
         var current = appState.likesMap[id] || 0;
         appState.likesMap[id] = current + 1;
+        if (itemName) appState.likesMap[itemName] = current + 1;
         showToast("❤️ 좋아요를 표했습니다!");
 
         var targetNewHeart = null;
+        var targetName = itemName || '';
 
         // Update UI elements dynamically
         document.querySelectorAll('.like-count-' + id).forEach(function (el) {
-            var baseVal = parseInt(el.getAttribute('data-base-likes') || '0', 10);
+            var baseVal = parseInt(el.getAttribute('data-base-likes') || '1', 10);
             targetNewHeart = baseVal + appState.likesMap[id];
             el.innerText = targetNewHeart;
+            if (!targetName && el.getAttribute('data-item-name')) {
+                targetName = el.getAttribute('data-item-name');
+            }
         });
 
-        if (id && targetNewHeart !== null) {
-            syncHeartToSupabase(id, targetNewHeart);
+        if (targetNewHeart !== null) {
+            syncHeartToSupabase(id, targetNewHeart, targetName);
         }
     }
 
-    function syncHeartToSupabase(id, newHeart) {
+    function syncHeartToSupabase(id, newHeart, itemName) {
         var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
         var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
 
         if (window.appState && Array.isArray(window.appState.citizenHeritages)) {
             window.appState.citizenHeritages.forEach(function(item) {
-                if (item.id === id || String(item.id) === String(id)) {
+                if (item.id === id || String(item.id) === String(id) || (itemName && item.name === itemName)) {
                     item.heart = newHeart;
+                    item.recommend_count = newHeart;
                 }
             });
         }
 
-        fetch(supabaseUrl + '/rest/v1/citizen_recommendations?id=eq.' + encodeURIComponent(id), {
-            method: 'PATCH',
-            headers: {
-                'apikey': supabaseKey,
-                'Authorization': 'Bearer ' + supabaseKey,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({ heart: newHeart })
-        })
-        .then(function(res) {
-            return res.text().then(function(txt) {
-                console.log('Supabase DB PATCH status:', res.status, 'response:', txt);
-                if (res.ok) {
-                    showToast("✅ DB(citizen_recommendations) 하트(" + newHeart + ") 갱신 완료!");
-                } else {
-                    console.warn('Supabase DB PATCH error status:', res.status, txt);
+        function executePatch(queryParam, payloadObj, fallbackFn) {
+            var patchUrl = supabaseUrl + '/rest/v1/citizen_recommendations?' + queryParam;
+            fetch(patchUrl, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': 'Bearer ' + supabaseKey,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(payloadObj)
+            })
+            .then(function(res) {
+                return res.text().then(function(txt) {
+                    console.log('Supabase DB PATCH (' + queryParam + ') status:', res.status, 'body:', txt);
+                    if (res.ok) {
+                        var arr = txt ? JSON.parse(txt) : [];
+                        if (Array.isArray(arr) && arr.length > 0) {
+                            showToast("✅ Supabase DB 하트(" + newHeart + ") 갱신 완료!");
+                        } else if (fallbackFn) {
+                            fallbackFn();
+                        }
+                    } else if (txt && txt.indexOf('heart') !== -1 && payloadObj.heart !== undefined) {
+                        delete payloadObj.heart;
+                        executePatch(queryParam, { recommend_count: newHeart }, null);
+                    } else if (fallbackFn) {
+                        fallbackFn();
+                    }
+                });
+            })
+            .catch(function(err) {
+                console.warn('Supabase PATCH exception:', err);
+                if (fallbackFn) fallbackFn();
+            });
+        }
+
+        var isUUID = typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+        if (isUUID) {
+            executePatch('id=eq.' + encodeURIComponent(id), { heart: newHeart, recommend_count: newHeart }, function() {
+                if (itemName) {
+                    executePatch('name=eq.' + encodeURIComponent(itemName), { heart: newHeart, recommend_count: newHeart }, null);
                 }
             });
-        })
-        .catch(function(err) {
-            console.warn('Supabase heart sync exception:', err);
-        });
+        } else if (itemName) {
+            executePatch('name=eq.' + encodeURIComponent(itemName), { heart: newHeart, recommend_count: newHeart }, null);
+        }
 
         if (typeof google !== 'undefined' && google.script && google.script.run) {
             google.script.run
                 .withSuccessHandler(function(res) {
                     console.log('GAS incrementCitizenHeartGAS result:', res);
                 })
-                .incrementCitizenHeartGAS(id, newHeart);
+                .incrementCitizenHeartGAS(id, newHeart, itemName);
         }
     }
 

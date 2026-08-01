@@ -146,13 +146,18 @@ function fetchCitizenRecommendationsGAS() {
 }
 
 /**
- * Increment heart column for citizen_recommendations in Supabase DB
+ * Increment heart column for citizen_recommendations in Supabase DB with fail-safe fallback
  */
-function incrementCitizenHeartGAS(id, newHeart) {
+function incrementCitizenHeartGAS(id, newHeart, itemName) {
   var supabaseUrl = getProp("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co");
   var supabaseKey = getProp("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw");
 
-  var url = supabaseUrl + "/rest/v1/citizen_recommendations?id=eq." + encodeURIComponent(id);
+  var isUUID = typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  var queryParam = isUUID ? ("id=eq." + encodeURIComponent(id)) : (itemName ? ("name=eq." + encodeURIComponent(itemName)) : ("id=eq." + encodeURIComponent(id)));
+
+  var url = supabaseUrl + "/rest/v1/citizen_recommendations?" + queryParam;
+  var payload = { heart: newHeart, recommend_count: newHeart };
+
   var options = {
     method: "patch",
     headers: {
@@ -161,13 +166,19 @@ function incrementCitizenHeartGAS(id, newHeart) {
       "Content-Type": "application/json",
       "Prefer": "return=representation"
     },
-    payload: JSON.stringify({ heart: newHeart }),
+    payload: JSON.stringify(payload),
     muteHttpExceptions: true
   };
 
   try {
     var response = UrlFetchApp.fetch(url, options);
-    return { status: "success", code: response.getResponseCode() };
+    var content = response.getContentText();
+    if (content.indexOf("heart") !== -1 && response.getResponseCode() >= 400) {
+      delete payload.heart;
+      options.payload = JSON.stringify(payload);
+      response = UrlFetchApp.fetch(url, options);
+    }
+    return { status: "success", code: response.getResponseCode(), data: response.getContentText() };
   } catch (e) {
     return { status: "error", message: e.toString() };
   }
