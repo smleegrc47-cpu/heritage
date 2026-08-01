@@ -57,40 +57,54 @@ def normalize_citizen_record(r: Dict[str, Any]) -> Dict[str, Any]:
 
 @router.post("/api/citizen-recommendations")
 def submit_citizen_recommendation(data: CitizenRecommendationSubmit):
-    """시민 추천 문화유산 제보 제출 (기본 status = '신청중')"""
-    new_id = f"cit-{len(CITIZEN_RECOMMENDATIONS_DB) + 1}"
+    """시민 추천 문화유산 제보 제출 (Supabase DB `citizen_recommendations` 테이블 저장)"""
     photo_url = data.photo_url or data.image_url or "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80"
     lat_val = float(data.lat or data.latitude or 36.48)
     lng_val = float(data.lng or data.longitude or 127.28)
     reason_val = data.reason or data.description or "시민 추천 문화유산 제보"
     user_val = data.user_id or data.submitted_by or "user@sejong.go.kr"
+    address_val = data.address or "세종특별자치시"
 
     raw_record = {
-        "id": new_id,
         "name": data.name,
+        "address": address_val,
+        "dong": address_val,
         "photo_url": photo_url,
         "image_url": photo_url,
         "lat": lat_val,
         "latitude": lat_val,
         "lng": lng_val,
         "longitude": lng_val,
-        "address": data.address or "세종특별자치시",
         "reason": reason_val,
         "description": reason_val,
-        "report_reason": reason_val,
+        "thinking_point": reason_val,
+        "era": "조선시대",
         "user_id": user_val,
         "submitted_by": user_val,
         "status": "신청중",
+        "like_count": 1,
         "recommend_count": 1,
-        "submitted_at": datetime.now().isoformat(),
-        "created_at": datetime.now().isoformat(),
-        "feedback": "담당자 확인 대기 중",
-        "reviewer_note": "담당자 확인 대기 중"
+        "created_at": datetime.now().isoformat()
     }
+
+    supabase = get_supabase()
+    if supabase:
+        try:
+            res = supabase.table("citizen_recommendations").insert(raw_record).execute()
+            if res.data and len(res.data) > 0:
+                inserted = normalize_citizen_record(res.data[0])
+                CITIZEN_RECOMMENDATIONS_DB.append(inserted)
+                return {
+                    "message": "시민 추천 문화유산이 Supabase DB(citizen_recommendations)에 성공적으로 저장되었습니다.",
+                    "record": inserted
+                }
+        except Exception as e:
+            print(f"Supabase citizen_recommendations insert notice: {e}")
+
     new_record = normalize_citizen_record(raw_record)
     CITIZEN_RECOMMENDATIONS_DB.append(new_record)
     return {
-        "message": "시민 추천 문화유산이 성공적으로 접수되었습니다. 관리자 승인 후 공개됩니다.",
+        "message": "시민 추천 문화유산이 성공적으로 접수되었습니다.",
         "record": new_record
     }
 

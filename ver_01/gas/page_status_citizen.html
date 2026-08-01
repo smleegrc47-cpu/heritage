@@ -210,6 +210,19 @@
     var lat = parseFloat(document.getElementById('citFormLat').value) || 36.4800;
     var lng = parseFloat(document.getElementById('citFormLng').value) || 127.2800;
 
+    if (!name) {
+      alert('문화유산 명칭을 입력해 주세요.');
+      return;
+    }
+    if (!address) {
+      alert('소재지 주소를 입력해 주세요.');
+      return;
+    }
+    if (!reason) {
+      alert('추천 이유 및 역사적 가치를 입력해 주세요.');
+      return;
+    }
+
     var newRecord = {
       name: name,
       address: address,
@@ -217,6 +230,7 @@
       reason: reason,
       description: reason,
       thinking_point: reason,
+      era: "조선시대",
       lat: lat,
       latitude: lat,
       lng: lng,
@@ -224,18 +238,58 @@
       status: "신청중",
       like_count: 1,
       image_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80",
+      photo_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80",
       submitted_by: "user@sejong.go.kr"
     };
 
     closeCitizenReportModal();
-    showToast("✅ 시민제보(citizen_recommendations)가 '신청중' 상태로 성공적으로 등록되었습니다!");
+    showToast("☁️ Supabase DB(citizen_recommendations)에 제보서를 저장하고 있습니다...");
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run.withSuccessHandler(function() {
-        renderStatusCitizenView();
-      }).submitCitizenRecommendationGAS(newRecord);
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.status === 'success') {
+            showToast("✅ 시민제보(citizen_recommendations)가 Supabase DB에 성공적으로 저장되었습니다!");
+          } else {
+            saveDirectToSupabase(newRecord);
+          }
+          renderStatusCitizenView();
+        })
+        .withFailureHandler(function(err) {
+          console.warn('GAS submit failed, trying direct Supabase REST:', err);
+          saveDirectToSupabase(newRecord);
+        })
+        .submitCitizenRecommendationGAS(newRecord);
     } else {
-      renderStatusCitizenView();
+      saveDirectToSupabase(newRecord);
     }
+  }
+
+  function saveDirectToSupabase(record) {
+    var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
+    var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
+
+    fetch(supabaseUrl + '/rest/v1/citizen_recommendations', {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': 'Bearer ' + supabaseKey,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(record)
+    })
+    .then(function(res) {
+      if (res.ok) {
+        showToast("✅ Supabase DB(citizen_recommendations)에 제보가 이관 저장되었습니다!");
+      } else {
+        console.warn('Supabase direct POST status:', res.status);
+      }
+      renderStatusCitizenView();
+    })
+    .catch(function(err) {
+      console.warn('Direct Supabase insert notice:', err);
+      renderStatusCitizenView();
+    });
   }
 </script>

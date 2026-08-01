@@ -519,34 +519,69 @@ function getActiveUserEmail() {
  */
 function submitCitizenRecommendationGAS(data) {
   try {
-    var ss = getSpreadsheet();
+    var supabaseUrl = getProp("SUPABASE_URL", "https://nmzrxczcytkkwgpiseaj.supabase.co");
+    var supabaseKey = getProp("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw");
     var userEmail = getActiveUserEmail();
 
-    var imgUrl = data.image_url || data.photo_url || "";
-    var latVal = data.lat || data.latitude || 36.48;
-    var lngVal = data.lng || data.longitude || 127.28;
-    var reasonVal = data.reason || data.description || data.report_reason || "";
+    var imgUrl = data.image_url || data.photo_url || "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80";
+    var latVal = parseFloat(data.lat || data.latitude) || 36.48;
+    var lngVal = parseFloat(data.lng || data.longitude) || 127.28;
+    var reasonVal = data.reason || data.description || data.report_reason || "시민 추천 문화유산 제보";
+    var nameVal = (data.name || "").trim() || "미정 유산명";
+    var addressVal = (data.address || data.dong || "세종특별자치시").trim();
 
-    if (ss) {
-      var sheet = ss.getSheetByName(SHEET_NAMES.CITIZEN) || ss.insertSheet(SHEET_NAMES.CITIZEN);
-      if (sheet.getLastRow() === 0) {
-        sheet.appendRow(["id", "name", "image_urls", "lat", "lng", "reason", "status", "reject_reason", "submitted_by", "created_at"]);
+    var payload = {
+      name: nameVal,
+      address: addressVal,
+      dong: addressVal,
+      reason: reasonVal,
+      description: reasonVal,
+      thinking_point: reasonVal,
+      era: data.era || "조선시대",
+      lat: latVal,
+      latitude: latVal,
+      lng: lngVal,
+      longitude: lngVal,
+      image_url: imgUrl,
+      photo_url: imgUrl,
+      status: data.status || "신청중",
+      like_count: 1,
+      submitted_by: userEmail
+    };
+
+    var options = {
+      method: "post",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": "Bearer " + supabaseKey,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    var response = UrlFetchApp.fetch(supabaseUrl + "/rest/v1/citizen_recommendations", options);
+    var responseCode = response.getResponseCode();
+
+    if (responseCode === 200 || responseCode === 201) {
+      try {
+        var ss = getSpreadsheet();
+        if (ss) {
+          var sheet = ss.getSheetByName(SHEET_NAMES.CITIZEN) || ss.insertSheet(SHEET_NAMES.CITIZEN);
+          if (sheet.getLastRow() === 0) {
+            sheet.appendRow(["id", "name", "image_urls", "lat", "lng", "reason", "status", "submitted_by", "created_at"]);
+          }
+          sheet.appendRow([data.id || ("cit-" + Date.now()), nameVal, imgUrl, latVal, lngVal, reasonVal, "신청중", userEmail, new Date()]);
+        }
+      } catch (sheetErr) {
+        Logger.log("Sheet backup notice: " + sheetErr);
       }
-      sheet.appendRow([
-        data.id || ("cit-" + Date.now()),
-        data.name,
-        imgUrl,
-        latVal,
-        lngVal,
-        reasonVal,
-        "대기",
-        "",
-        userEmail,
-        new Date()
-      ]);
-    }
 
-    return { status: "success", message: "시민 제보가 시트에 접수되었습니다." };
+      return { status: "success", message: "시민 제보가 Supabase DB(citizen_recommendations)에 성공적으로 저장되었습니다." };
+    } else {
+      return { status: "error", message: "Supabase DB 저장 실패 (HTTP " + responseCode + "): " + response.getContentText() };
+    }
   } catch (err) {
     Logger.log("submitCitizenRecommendationGAS Error: " + err);
     return { status: "error", message: err.toString() };
