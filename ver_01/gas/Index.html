@@ -26,6 +26,20 @@
       return true;
     };
 
+    window.appState = window.appState || {
+      currentTab: 'home',
+      officialHeritages: [],
+      citizenHeritages: [],
+      selectedHeritageDetail: null,
+      courseList: [],
+      savedCourses: [],
+      myCitizenSubmissions: [],
+      likesMap: {},
+      previousTab: 'home',
+      scrollPositionMap: {}
+    };
+    var appState = window.appState;
+
     window.renderHomeView = window.renderHomeView || function() {};
     window.renderStatusOfficialView = window.renderStatusOfficialView || function() {};
     window.renderStatusCitizenView = window.renderStatusCitizenView || function() {};

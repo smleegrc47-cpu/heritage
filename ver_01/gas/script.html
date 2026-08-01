@@ -15,12 +15,12 @@
     }
 
     // Global State Stores
-    var appState = {
+    var appState = window.appState = window.appState || {
         currentTab: 'home',
         officialHeritages: [],
         citizenHeritages: [],
         selectedHeritageDetail: null,
-        courseList: [], // { id, name, era, dong, lat, lng, image_url }
+        courseList: [],
         savedCourses: [],
         myCitizenSubmissions: [],
         likesMap: {},
