@@ -273,31 +273,62 @@
     }
   }
 
-  function saveDirectToSupabase(record) {
+  function sanitizePayload(source) {
+    var result = {};
+    Object.keys(source || {}).forEach(function (key) {
+      var value = source[key];
+      if (value === undefined) return;
+      if (typeof Blob !== 'undefined' && (value instanceof Blob || (typeof File !== 'undefined' && value instanceof File))) {
+        console.warn('전송 제외: ' + key + '는 Blob/File 객체입니다.');
+        return;
+      }
+      if (typeof value === 'string') {
+        result[key] = value.trim() || null;
+        return;
+      }
+      result[key] = value;
+    });
+    return result;
+  }
+
+  async function saveDirectToSupabase(rawRecord) {
     var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
     var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
+    var url = supabaseUrl + '/rest/v1/citizen_recommendations';
 
-    fetch(supabaseUrl + '/rest/v1/citizen_recommendations', {
-      method: 'POST',
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': 'Bearer ' + supabaseKey,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(record)
-    })
-    .then(function(res) {
-      if (res.ok) {
-        showToast("✅ Supabase DB(citizen_recommendations)에 제보가 이관 저장되었습니다!");
+    var payload = sanitizePayload(rawRecord);
+
+    console.log('POST payload:', payload);
+    console.log('POST JSON:', JSON.stringify(payload, null, 2));
+
+    try {
+      var response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': 'Bearer ' + supabaseKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      var responseText = await response.text();
+
+      console.log('Supabase direct POST status:', response.status);
+      console.log('Supabase direct POST response:', responseText);
+
+      if (!response.ok) {
+        console.error('citizen_recommendations 저장 실패:', response.status, responseText);
+        showToast('❌ Supabase POST 실패: ' + response.status + ' ' + responseText);
       } else {
-        console.warn('Supabase direct POST status:', res.status);
+        showToast('✅ Supabase DB(citizen_recommendations)에 제보가 성공적으로 저장되었습니다!');
       }
       renderStatusCitizenView();
-    })
-    .catch(function(err) {
-      console.warn('Direct Supabase insert notice:', err);
+    } catch (err) {
+      console.error('Direct Supabase insert exception:', err);
       renderStatusCitizenView();
-    });
+    }
   }
 </script>
