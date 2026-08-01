@@ -194,7 +194,10 @@
         return;
       }
 
-      var data = responseText ? JSON.parse(responseText) : [];
+      var data = [];
+      if (responseText && typeof responseText === 'string' && (responseText.trim().startsWith('[') || responseText.trim().startsWith('{'))) {
+        try { data = JSON.parse(responseText); } catch (e) {}
+      }
       callback(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Direct citizen_recommendations fetch exception:', err);

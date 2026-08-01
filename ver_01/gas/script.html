@@ -294,7 +294,10 @@
                 return res.text().then(function(txt) {
                     console.log('Supabase DB PATCH (' + queryParam + ') status:', res.status, 'body:', txt);
                     if (res.ok) {
-                        var arr = txt ? JSON.parse(txt) : [];
+                        var arr = [];
+                        if (txt && typeof txt === 'string' && (txt.trim().startsWith('[') || txt.trim().startsWith('{'))) {
+                            try { arr = JSON.parse(txt); } catch (e) {}
+                        }
                         if (Array.isArray(arr) && arr.length > 0) {
                             showToast("✅ Supabase DB 하트(" + newHeart + ") 갱신 완료!");
                         } else if (fallbackFn) {

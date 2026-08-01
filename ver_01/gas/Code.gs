@@ -118,7 +118,10 @@ function getSupabaseData(tableName, query) {
   try {
     var response = UrlFetchApp.fetch(url, options);
     if (response.getResponseCode() === 200) {
-      return JSON.parse(response.getContentText());
+      var text = response.getContentText();
+      if (text && typeof text === "string" && (text.trim().startsWith("[") || text.trim().startsWith("{"))) {
+        return JSON.parse(text);
+      }
     }
   } catch (e) {
     Logger.log("Supabase REST Fetch Error: " + e);
@@ -261,7 +264,10 @@ function importExcelToSupabaseDirectGAS(records) {
     var code = response.getResponseCode();
     var resContent = response.getContentText();
     if (code === 200 || code === 201) {
-      var inserted = JSON.parse(resContent);
+      var inserted = [];
+      if (resContent && typeof resContent === "string" && (resContent.trim().startsWith("[") || resContent.trim().startsWith("{"))) {
+        try { inserted = JSON.parse(resContent); } catch (e) {}
+      }
 
       if (inserted && Array.isArray(inserted)) {
         var bulkImages = [];
@@ -710,8 +716,12 @@ function generateAIMagazineGAS(courseObj) {
         payload: JSON.stringify(payload),
         muteHttpExceptions: true
       });
-      var json = JSON.parse(response.getContentText());
-      if (json.candidates && json.candidates[0].content.parts[0].text) {
+      var resText = response.getContentText();
+      var json = {};
+      if (resText && typeof resText === "string" && (resText.trim().startsWith("{") || resText.trim().startsWith("["))) {
+        try { json = JSON.parse(resText); } catch (e) {}
+      }
+      if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0].text) {
         return json.candidates[0].content.parts[0].text;
       }
     }
