@@ -140,7 +140,7 @@
 
     container.innerHTML = list.map(function(h) {
       return `
-        <div class="glass-card" style="cursor: pointer;" onclick="navigateTo('search_detail', { item: appState.officialHeritages.find(x => x.id === '${h.id}') })">
+        <div class="glass-card" style="cursor: pointer;" onclick="openSearchDetailById('${h.id}')">
           <img src="${h.image_url}" style="width: 100%; height: 165px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" />
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <div>

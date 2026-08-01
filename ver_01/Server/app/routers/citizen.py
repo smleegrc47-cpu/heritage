@@ -10,79 +10,121 @@ from datetime import datetime
 
 router = APIRouter(tags=["citizen"])
 
-# In-Memory Citizen Recommendations Store (Mock & DB Sync)
-CITIZEN_RECOMMENDATIONS_DB = [
-    {
-        "id": "cit-1",
-        "name": "금남면 구 즉석 우물터",
-        "photo_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80",
-        "lat": 36.4600,
-        "lng": 127.2800,
-        "address": "세종특별자치시 금남면 용포리 12",
-        "reason": "옛 조선시대 금남 지방 마을 주민들의 오아시스 역할을 했던 역사적 우물터로 보존 가치가 높습니다.",
-        "user_id": "user-101",
-        "status": "승인",
-        "recommend_count": 45,
-        "submitted_at": "2026-07-15T10:30:00",
-        "feedback": "담당자 현장 확인 완료: 세종시 미래유산 등록 추진 대상 지정"
-    },
-    {
-        "id": "cit-2",
-        "name": "연동면 고전 방앗간 건축물",
-        "photo_url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&q=80",
-        "lat": 36.5300,
-        "lng": 127.3100,
-        "address": "세종특별자치시 연동면 내판리 45",
-        "reason": "근대 1950년대 농촌 방앗간의 목조 구조와 제분 기계가 보존되어 있는 근대 생활문화유산입니다.",
-        "user_id": "user-101",
-        "status": "신청중",
-        "recommend_count": 18,
-        "submitted_at": "2026-07-20T14:15:00",
-        "feedback": "전문가 현장 실사 일정 수립 중"
-    }
-]
+# In-Memory Citizen Recommendations Store (DB Dynamic Sync)
+CITIZEN_RECOMMENDATIONS_DB = []
 
 class CitizenRecommendationSubmit(BaseModel):
     name: str
-    photo_url: Optional[str] = "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80"
-    lat: float
-    lng: float
+    photo_url: Optional[str] = None
+    image_url: Optional[str] = None
+    lat: Optional[float] = None
+    latitude: Optional[float] = None
+    lng: Optional[float] = None
+    longitude: Optional[float] = None
     address: Optional[str] = "세종특별자치시"
-    reason: str
-    user_id: str = "user-101"
+    reason: Optional[str] = None
+    description: Optional[str] = None
+    user_id: Optional[str] = "user-101"
+    submitted_by: Optional[str] = "user@sejong.go.kr"
+
+def normalize_citizen_record(r: Dict[str, Any]) -> Dict[str, Any]:
+    photo_url = r.get("photo_url") or r.get("image_url") or "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80"
+    lat_val = float(r.get("lat") or r.get("latitude") or 36.48)
+    lng_val = float(r.get("lng") or r.get("longitude") or 127.28)
+    reason_val = r.get("reason") or r.get("description") or r.get("report_reason") or "시민 추천 문화유산 제보"
+    user_val = r.get("user_id") or r.get("submitted_by") or "user@sejong.go.kr"
+    status_val = r.get("status") or "신청중"
+    feedback_val = r.get("feedback") or r.get("reviewer_note") or "담당자 확인 대기 중"
+    time_val = r.get("submitted_at") or r.get("created_at") or datetime.now().isoformat()
+
+    r["photo_url"] = photo_url
+    r["image_url"] = photo_url
+    r["lat"] = lat_val
+    r["latitude"] = lat_val
+    r["lng"] = lng_val
+    r["longitude"] = lng_val
+    r["reason"] = reason_val
+    r["description"] = reason_val
+    r["report_reason"] = reason_val
+    r["user_id"] = user_val
+    r["submitted_by"] = user_val
+    r["status"] = status_val
+    r["feedback"] = feedback_val
+    r["reviewer_note"] = feedback_val
+    r["submitted_at"] = time_val
+    r["created_at"] = time_val
+    return r
 
 @router.post("/api/citizen-recommendations")
 def submit_citizen_recommendation(data: CitizenRecommendationSubmit):
     """시민 추천 문화유산 제보 제출 (기본 status = '신청중')"""
     new_id = f"cit-{len(CITIZEN_RECOMMENDATIONS_DB) + 1}"
-    new_record = {
+    photo_url = data.photo_url or data.image_url or "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80"
+    lat_val = float(data.lat or data.latitude or 36.48)
+    lng_val = float(data.lng or data.longitude or 127.28)
+    reason_val = data.reason or data.description or "시민 추천 문화유산 제보"
+    user_val = data.user_id or data.submitted_by or "user@sejong.go.kr"
+
+    raw_record = {
         "id": new_id,
         "name": data.name,
-        "photo_url": data.photo_url,
-        "lat": data.lat,
-        "lng": data.lng,
-        "address": data.address,
-        "reason": data.reason,
-        "user_id": data.user_id,
+        "photo_url": photo_url,
+        "image_url": photo_url,
+        "lat": lat_val,
+        "latitude": lat_val,
+        "lng": lng_val,
+        "longitude": lng_val,
+        "address": data.address or "세종특별자치시",
+        "reason": reason_val,
+        "description": reason_val,
+        "report_reason": reason_val,
+        "user_id": user_val,
+        "submitted_by": user_val,
         "status": "신청중",
         "recommend_count": 1,
         "submitted_at": datetime.now().isoformat(),
-        "feedback": "담당자 확인 대기 중"
+        "created_at": datetime.now().isoformat(),
+        "feedback": "담당자 확인 대기 중",
+        "reviewer_note": "담당자 확인 대기 중"
     }
+    new_record = normalize_citizen_record(raw_record)
     CITIZEN_RECOMMENDATIONS_DB.append(new_record)
     return {
         "message": "시민 추천 문화유산이 성공적으로 접수되었습니다. 관리자 승인 후 공개됩니다.",
         "record": new_record
     }
 
+from app.database import get_supabase
+
 @router.get("/api/citizen-recommendations")
-def get_citizen_recommendations(status: Optional[str] = Query(None, description="신청중 / 승인 / 반려")):
-    """시민 추천 목록 조회 (상태 필터)"""
+def get_citizen_recommendations(
+    status: Optional[str] = Query(None, description="신청중 / 승인 / 반려 / pending / approved"),
+    limit: Optional[int] = Query(10, description="최신 항목 조회 수 (기본 10개)")
+):
+    """시민 추천 목록 조회 (Supabase DB `citizen_recommendations` 테이블 최신 10개 레코드 연동)"""
+    supabase = get_supabase()
+    if supabase:
+        try:
+            query = supabase.table("citizen_recommendations").select("*").order("created_at", desc=True)
+            if status:
+                query = query.eq("status", status)
+            if limit:
+                query = query.limit(limit)
+            res = query.execute()
+            if res.data is not None:
+                return [normalize_citizen_record(r) for r in res.data]
+        except Exception as e:
+            print(f"Supabase citizen_recommendations query error: {e}")
+
+    records = [normalize_citizen_record(r) for r in CITIZEN_RECOMMENDATIONS_DB]
     if status:
-        return [r for r in CITIZEN_RECOMMENDATIONS_DB if r["status"] == status]
-    return CITIZEN_RECOMMENDATIONS_DB
+        records = [r for r in records if r["status"] == status]
+    if limit:
+        records = records[:limit]
+    return records
 
 @router.get("/api/my-recommendations/{user_id}")
 def get_my_recommendations(user_id: str):
     """내가 추천한 문화유산 목록 및 등재 피드백 상태 조회"""
-    return [r for r in CITIZEN_RECOMMENDATIONS_DB if r["user_id"] == user_id]
+    records = [normalize_citizen_record(r) for r in CITIZEN_RECOMMENDATIONS_DB]
+    return [r for r in records if r["user_id"] == user_id or r["submitted_by"] == user_id]

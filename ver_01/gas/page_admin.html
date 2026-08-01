@@ -116,30 +116,32 @@
       </p>
     </div>
 
-    <!-- Dual Dropzone Inputs -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 18px;">
-      <!-- 1. Excel File Loader -->
-      <div style="background: rgba(245, 158, 11, 0.04); padding: 16px; border-radius: 10px; border: 1px dashed rgba(245, 158, 11, 0.4);">
-        <label style="display: block; font-size: 0.88rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
-          📄 1. 로컬 엑셀 파일 (.xlsx / .csv)
-        </label>
-        <input type="file" id="adminExcelFileInput" accept=".xlsx,.csv,.json" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
-        <span style="font-size: 0.73rem; color: var(--text-muted); display: block; margin-top: 6px;">
-          열 순서: [명칭, 시대, 읍면동, 소개, 생각할거리, 이미지파일명]
-        </span>
-      </div>
+    <!-- Dual Dropzone Inputs Form -->
+    <form id="adminUploadForm" onsubmit="return false;" style="display: block;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 18px;">
+        <!-- 1. Excel File Loader -->
+        <div style="background: rgba(245, 158, 11, 0.04); padding: 16px; border-radius: 10px; border: 1px dashed rgba(245, 158, 11, 0.4);">
+          <label style="display: block; font-size: 0.88rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
+            📄 1. 로컬 엑셀 파일 (.xlsx / .csv)
+          </label>
+          <input type="file" id="adminExcelFileInput" name="adminExcelFile" accept=".xlsx,.csv,.json" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
+          <span style="font-size: 0.73rem; color: var(--text-muted); display: block; margin-top: 6px;">
+            열 구성: [H_ID, 명칭, 소재지, 소개, 시대, 생각할 거리, 이미지파일명] (H_ID와 ZIP 파일명 자동 매칭)
+          </span>
+        </div>
 
-      <!-- 2. ZIP Compressed Images Loader -->
-      <div style="background: rgba(0, 245, 212, 0.04); padding: 16px; border-radius: 10px; border: 1px dashed rgba(0, 245, 212, 0.4);">
-        <label style="display: block; font-size: 0.88rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
-          📦 2. 로컬 이미지 압축파일 (.zip)
-        </label>
-        <input type="file" id="adminZipFileInput" accept=".zip" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
-        <span style="font-size: 0.73rem; color: var(--text-muted); display: block; margin-top: 6px;">
-          문화유산 사진 이미지들(.jpg/.png)이 압축된 ZIP 파일
-        </span>
+        <!-- 2. ZIP Compressed Images Loader -->
+        <div style="background: rgba(0, 245, 212, 0.04); padding: 16px; border-radius: 10px; border: 1px dashed rgba(0, 245, 212, 0.4);">
+          <label style="display: block; font-size: 0.88rem; font-weight: bold; margin-bottom: 6px; color: #fff;">
+            📦 2. 로컬 이미지 압축파일 (.zip)
+          </label>
+          <input type="file" id="adminZipFileInput" name="adminZipFile" accept=".zip" style="font-size: 0.8rem; color: #cbd5e1; width: 100%;">
+          <span style="font-size: 0.73rem; color: var(--text-muted); display: block; margin-top: 6px;">
+            문화유산 사진 이미지들(.jpg/.png)이 압축된 ZIP 파일 (파일명 예: H1.jpg, H2.png)
+          </span>
+        </div>
       </div>
-    </div>
+    </form>
 
     <!-- Action Buttons -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
@@ -162,19 +164,21 @@
     <div id="adminExcelPreviewContainer" style="display: none; background: rgba(0,0,0,0.25); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
         <h4 style="font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan);">
-          📋 파싱 결과 및 Supabase DB & Storage 매핑 목록
+          📋 파싱 결과 및 H_ID-이미지 매칭, Supabase DB & Storage 동기화 목록
         </h4>
         <span id="adminParsedCountBadge" class="badge badge-era">0건</span>
       </div>
       <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; color: #e2e8f0;">
-        <thead>
+        <thead id="adminExcelPreviewThead">
           <tr style="border-bottom: 1px solid var(--border-color); color: var(--accent-cyan); background: rgba(255,255,255,0.03);">
             <th style="padding: 10px;">사진 미리보기</th>
-            <th style="padding: 10px;">문화유산 명칭</th>
-            <th style="padding: 10px;">시대</th>
-            <th style="padding: 10px;">읍면동</th>
+            <th style="padding: 10px;">H_ID</th>
+            <th style="padding: 10px;">명칭</th>
+            <th style="padding: 10px;">소재지</th>
             <th style="padding: 10px;">소개</th>
-            <th style="padding: 10px;">생각할거리</th>
+            <th style="padding: 10px;">시대</th>
+            <th style="padding: 10px;">생각할 거리</th>
+            <th style="padding: 10px;">ZIP 이미지 매칭</th>
             <th style="padding: 10px;">동기화 상태</th>
           </tr>
         </thead>
@@ -328,17 +332,23 @@
     var container = document.getElementById('adminReviewsList');
     if (!container) return;
 
-    var mockReviews = [
-      { id: 'r1', heritageName: '연기아문', rating: 5, text: '관아 정문 전경이 매우 훌륭합니다. 주차 공간이 잘 정비되어 있습니다.', isImprovementNeeded: false },
-      { id: 'r2', heritageName: '비암사 극락보전', rating: 4, text: '진입로 주차장 공간 확충이 필요합니다. 공중화장실 청결도 개선 요구.', isImprovementNeeded: true },
-      { id: 'r3', heritageName: '합강리 선사유적', rating: 2, text: '안내 표지판과 공중화장실이 부족하여 개선이 시급합니다.', isImprovementNeeded: true }
-    ];
+    var reviewsList = [];
+    (appState.savedCourses || []).forEach(function(c) {
+      if (c.reviews && Array.isArray(c.reviews)) {
+        reviewsList = reviewsList.concat(c.reviews);
+      }
+    });
 
-    var filtered = mockReviews.filter(function(r) {
-      if (filterVal === 'improvement') return r.isImprovementNeeded;
-      if (filterVal === 'low_rating') return r.rating <= 2;
+    var filtered = reviewsList.filter(function(r) {
+      if (filterVal === 'improvement') return r.isImprovementNeeded || (r.rating && r.rating <= 3);
+      if (filterVal === 'low_rating') return r.rating && r.rating <= 2;
       return true;
     });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="color: var(--text-sub); text-align: center; padding: 20px;">등록된 시민 탐방 후기가 없습니다.</div>';
+      return;
+    }
 
     container.innerHTML = filtered.map(function(r) {
       return `

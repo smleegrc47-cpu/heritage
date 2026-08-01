@@ -181,20 +181,13 @@ def import_excel_and_images(req: BatchImportRequest):
         final_lng = float(row.longitude or row.lng or 127.27)
 
         db_row = {
-            "h_id": final_h_id,
             "name": final_name,
-            "address": final_address,
             "era": final_era,
-            "era_normalized": final_era_norm,
             "dong": final_dong,
-            "dong_eup_myeon": final_dong,
             "latitude": final_lat,
             "longitude": final_lng,
-            "lat": final_lat,
-            "lng": final_lng,
             "description": final_desc,
             "thinking_point": final_thinking,
-            "think_about": final_thinking,
             "source": "registered",
             "status": "approved",
             "like_count": 50

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- 3. 문화유산 (heritages) 마스터 통합 테이블
 CREATE TABLE IF NOT EXISTS heritages (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  h_id              VARCHAR(50),
   name              VARCHAR(200) NOT NULL,
   era               VARCHAR(100),
   dong              VARCHAR(50),
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS heritages (
 );
 
 -- 기존 테이블이 구버전으로 존재하는 경우 모든 필수 신규 컬럼 자동 추가 (안전성 보장)
+ALTER TABLE heritages ADD COLUMN IF NOT EXISTS h_id VARCHAR(50);
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS dong VARCHAR(50);
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS era VARCHAR(100);
 ALTER TABLE heritages ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;

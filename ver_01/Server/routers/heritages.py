@@ -5,7 +5,6 @@ app/routers/heritages.py
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List, Dict, Any
-from app.services.rag_service import MOCK_HERITAGES
 from app.database import get_supabase
 
 router = APIRouter(prefix="/api/heritages", tags=["heritages"])
@@ -20,44 +19,41 @@ def get_heritages(
     supabase = get_supabase()
     if supabase:
         try:
-            query_builder = supabase.table("heritages").select("*")
+            query_builder = supabase.table("heritages").select("*, images:heritage_images(*)")
             if dong_eup_myeon:
-                query_builder = query_builder.eq("dong_eup_myeon", dong_eup_myeon)
+                query_builder = query_builder.eq("dong", dong_eup_myeon)
             if era_normalized:
-                query_builder = query_builder.eq("era_normalized", era_normalized)
+                query_builder = query_builder.eq("era", era_normalized)
             if keyword:
                 query_builder = query_builder.ilike("name", f"%{keyword}%")
             res = query_builder.execute()
-            if res.data and len(res.data) > 0:
+            if res.data is not None:
                 return res.data
         except Exception as e:
             print(f"Supabase fetch error: {e}")
 
-    # Fallback filtering logic
-    filtered = MOCK_HERITAGES
-    if dong_eup_myeon:
-        filtered = [h for h in filtered if h["dong_eup_myeon"] == dong_eup_myeon]
-    if era_normalized:
-        filtered = [h for h in filtered if h["era_normalized"] == era_normalized]
-    if keyword:
-        k_lower = keyword.lower()
-        filtered = [h for h in filtered if k_lower in h["name"].lower() or k_lower in h["description"].lower()]
-        
-    return filtered
+    return []
 
 @router.get("/stats")
 def get_heritage_stats():
     """세종시 실시간 문화유산 현황 통계 요약 (읍면동별, 시대별 그래프용)"""
-    total_count = len(MOCK_HERITAGES)
-    national_registered_count = 3  # 국가등록/보물 등
-    
-    # 시대별 개수 집계
+    supabase = get_supabase()
+    heritages = []
+    if supabase:
+        try:
+            res = supabase.table("heritages").select("*").execute()
+            if res.data:
+                heritages = res.data
+        except Exception as e:
+            print(f"Stats query notice: {e}")
+
+    total_count = len(heritages)
     era_counts = {}
     dong_counts = {}
     
-    for h in MOCK_HERITAGES:
-        era = h["era_normalized"]
-        dong = h["dong_eup_myeon"]
+    for h in heritages:
+        era = h.get("era") or "시대 미상"
+        dong = h.get("dong") or "세종특별자치시"
         era_counts[era] = era_counts.get(era, 0) + 1
         dong_counts[dong] = dong_counts.get(dong, 0) + 1
 
@@ -66,7 +62,7 @@ def get_heritage_stats():
 
     return {
         "total_count": total_count,
-        "national_registered_count": national_registered_count,
+        "national_registered_count": total_count,
         "era_stats": era_chart_data,
         "dong_stats": dong_chart_data
     }
@@ -74,7 +70,13 @@ def get_heritage_stats():
 @router.get("/{heritage_id}")
 def get_heritage_detail(heritage_id: str):
     """문화유산 단건 상세 정보 조회"""
-    for h in MOCK_HERITAGES:
-        if h["id"] == heritage_id or h["h_id"] == heritage_id:
-            return h
+    supabase = get_supabase()
+    if supabase:
+        try:
+            res = supabase.table("heritages").select("*, images:heritage_images(*)").eq("id", heritage_id).execute()
+            if res.data and len(res.data) > 0:
+                return res.data[0]
+        except Exception as e:
+            print(f"Detail query notice: {e}")
+
     raise HTTPException(status_code=404, detail="문화유산을 찾을 수 없습니다.")

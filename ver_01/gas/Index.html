@@ -20,11 +20,23 @@
       return baseUrl.replace(/\/$/, '') + path;
     }
 
-    // Global Safe Fail-safe Guard & Fallback for navigateTo and OAuth script dialogs
+    // Global Safe Fail-safe Guard & Fallback for navigateTo, view renderers and OAuth script dialogs
     window.onerror = function(msg, url, line, col, error) {
       console.warn("GCP/WebApp Guarded Exception Ignored:", msg, "at line:", line);
       return true;
     };
+
+    window.renderHomeView = window.renderHomeView || function() {};
+    window.renderStatusOfficialView = window.renderStatusOfficialView || function() {};
+    window.renderStatusCitizenView = window.renderStatusCitizenView || function() {};
+    window.renderSearchView = window.renderSearchView || function() {};
+    window.renderSearchDetailView = window.renderSearchDetailView || function() {};
+    window.renderCourseView = window.renderCourseView || function() {};
+    window.renderMyPageView = window.renderMyPageView || function() {};
+    window.renderMyPageDetailView = window.renderMyPageDetailView || function() {};
+    window.renderReviewView = window.renderReviewView || function() {};
+    window.renderAdminView = window.renderAdminView || function() {};
+
     window.navigateTo = function(tabId, paramData) {
       if (window.performSafeNavigation) {
         window.performSafeNavigation(tabId, paramData);

@@ -102,6 +102,12 @@ CREATE INDEX IF NOT EXISTS idx_heritages_era ON heritages(era_normalized);
 CREATE INDEX IF NOT EXISTS idx_heritages_dong ON heritages(dong_eup_myeon);
 CREATE INDEX IF NOT EXISTS idx_citizen_status ON citizen_recommendations(status);
 
+-- DROP FUNCTION IF EXISTS CASCADE to prevent PostgreSQL 42P13 return type conflict errors
+DROP FUNCTION IF EXISTS match_heritages CASCADE;
+DROP FUNCTION IF EXISTS match_heritages(vector, float, int) CASCADE;
+DROP FUNCTION IF EXISTS match_heritages(vector, double precision, integer) CASCADE;
+DROP FUNCTION IF EXISTS hybrid_search_heritages CASCADE;
+
 -- pgvector RAG Cosine Distance Index (HNSW)
 CREATE INDEX IF NOT EXISTS idx_heritages_embedding ON heritages 
 USING hnsw (embedding vector_cosine_ops);
@@ -111,20 +117,18 @@ USING hnsw (embedding vector_cosine_ops);
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION match_heritages (
-  query_embedding VECTOR(768),
-  match_threshold FLOAT DEFAULT 0.3,
+  query_embedding VECTOR(1536),
+  match_threshold FLOAT DEFAULT 0.2,
   match_count INT DEFAULT 5
 )
 RETURNS TABLE (
   id UUID,
   h_id VARCHAR,
   name VARCHAR,
-  address TEXT,
+  dong VARCHAR,
   description TEXT,
-  era_normalized VARCHAR,
-  think_about TEXT,
-  image_url TEXT,
-  dong_eup_myeon VARCHAR,
+  era VARCHAR,
+  thinking_point TEXT,
   similarity FLOAT
 )
 LANGUAGE plpgsql
@@ -135,12 +139,10 @@ BEGIN
     heritages.id,
     heritages.h_id,
     heritages.name,
-    heritages.address,
+    heritages.dong,
     heritages.description,
-    heritages.era_normalized,
-    heritages.think_about,
-    heritages.image_url,
-    heritages.dong_eup_myeon,
+    heritages.era,
+    heritages.thinking_point,
     1 - (heritages.embedding <=> query_embedding) AS similarity
   FROM heritages
   WHERE 1 - (heritages.embedding <=> query_embedding) > match_threshold

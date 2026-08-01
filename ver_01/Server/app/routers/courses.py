@@ -10,59 +10,63 @@ from datetime import datetime
 
 router = APIRouter(prefix="/api/courses", tags=["courses"])
 
-# In-Memory User Courses Database
-COURSES_DB = [
-    {
-        "id": "course-1",
-        "user_id": "user-101",
-        "title": "세종 조선 관아 & 한옥 쉼터 역사 탐방 코스",
-        "transport_mode": "대중교통",
-        "total_time": "약 2시간 30분",
-        "created_at": "2026-07-22T11:00:00",
-        "items": [
-            {
-                "heritage_id": "h1-uuid",
-                "h_id": "H1",
-                "name": "세종 연기아문",
-                "address": "세종특별자치시 연기면 연기리 31-1",
-                "image_url": "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80",
-                "order_index": 1
-            },
-            {
-                "heritage_id": "h3-uuid",
-                "h_id": "H3",
-                "name": "초려 이유태 역사공원",
-                "address": "세종특별자치시 어진동 580",
-                "image_url": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80",
-                "order_index": 2
-            }
-        ],
-        "ai_content": "세종의 과거와 현재가 교차하는 특별 기행. 조선시대 연기현의 위엄을 상징하는 연기아문에서 출발하여, 어진동 한옥 공원에서 전통과 현대의 아늑한 조화를 만끽하는 힐링 유산 코스입니다."
-    }
-]
+# In-Memory User Courses Database (DB Dynamic Sync)
+COURSES_DB = []
 
 class CourseCreateRequest(BaseModel):
-    user_id: str = "user-101"
-    title: str
-    transport_mode: str = "대중교통"
-    total_time: str = "약 1시간 40분"
+    user_id: Optional[str] = None
+    user_email: Optional[str] = None
+    title: Optional[str] = None
+    course_name: Optional[str] = None
+    transport_mode: Optional[str] = None
+    transport: Optional[str] = None
+    total_time: Optional[str] = None
+    total_time_min: Optional[Any] = None
     items: List[Dict[str, Any]]
     ai_content: Optional[str] = None
+
+def normalize_course_record(c: Dict[str, Any]) -> Dict[str, Any]:
+    c_title = c.get("title") or c.get("course_name") or "세종시 문화유산 여행 코스"
+    c_user = c.get("user_id") or c.get("user_email") or "user-101"
+    c_transport = c.get("transport_mode") or c.get("transport") or "승용차"
+    c_time = str(c.get("total_time") or c.get("total_time_min") or c.get("total_duration_min") or "약 60분")
+    
+    c["title"] = c_title
+    c["course_name"] = c_title
+    c["user_id"] = c_user
+    c["user_email"] = c_user
+    c["transport_mode"] = c_transport
+    c["transport"] = c_transport
+    c["total_time"] = c_time
+    c["total_time_min"] = c_time
+    c["total_duration_min"] = c_time
+    return c
 
 @router.post("")
 def create_course(req: CourseCreateRequest):
     """여행 코스 저장"""
     new_id = f"course-{len(COURSES_DB) + 1}"
-    new_course = {
+    title_val = req.title or req.course_name or "세종시 문화유산 여행 코스"
+    user_val = req.user_id or req.user_email or "user-101"
+    transport_val = req.transport_mode or req.transport or "승용차"
+    time_val = str(req.total_time or req.total_time_min or "약 60분")
+
+    raw_course = {
         "id": new_id,
-        "user_id": req.user_id,
-        "title": req.title,
-        "transport_mode": req.transport_mode,
-        "total_time": req.total_time,
+        "course_id": new_id,
+        "user_id": user_val,
+        "user_email": user_val,
+        "title": title_val,
+        "course_name": title_val,
+        "transport_mode": transport_val,
+        "transport": transport_val,
+        "total_time": time_val,
+        "total_time_min": time_val,
         "created_at": datetime.now().isoformat(),
         "items": req.items,
         "ai_content": req.ai_content or "세종 문화유산 AI 코스가 성공적으로 생성되었습니다."
     }
+    new_course = normalize_course_record(raw_course)
     COURSES_DB.append(new_course)
     return {
         "message": "코스가 성공적으로 저장되었습니다.",
@@ -72,4 +76,5 @@ def create_course(req: CourseCreateRequest):
 @router.get("/{user_id}")
 def get_user_courses(user_id: str):
     """특정 사용자가 만든 코스 목록 조회"""
-    return [c for c in COURSES_DB if c["user_id"] == user_id]
+    courses = [normalize_course_record(c) for c in COURSES_DB]
+    return [c for c in courses if c["user_id"] == user_id or c["user_email"] == user_id]

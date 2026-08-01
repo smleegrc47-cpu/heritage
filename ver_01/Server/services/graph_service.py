@@ -4,13 +4,25 @@ Neo4j Graph 기반 문화유산 연관 관계 (거리, 동일시대, 동일테�
 """
 
 from typing import List, Dict, Any
-from app.database import get_neo4j
-from app.services.rag_service import MOCK_HERITAGES
+from app.database import get_neo4j, get_supabase
 
 def recommend_course_graph(start_heritage_id: str, max_items: int = 3) -> List[Dict[str, Any]]:
-    """Neo4j 그래프 데이터베이스를 조회하여 연관 문화유산 추천"""
+    """Neo4j 및 Supabase DB를 조회하여 연관 문화유산 추천"""
     driver = get_neo4j()
+    supabase = get_supabase()
     
+    all_heritages = []
+    if supabase:
+        try:
+            res = supabase.table("heritages").select("*, images:heritage_images(*)").execute()
+            if res.data:
+                all_heritages = res.data
+        except Exception as e:
+            print(f"Supabase query notice: {e}")
+
+    if not all_heritages:
+        return []
+
     if driver:
         try:
             with driver.session() as session:
@@ -24,26 +36,18 @@ def recommend_course_graph(start_heritage_id: str, max_items: int = 3) -> List[D
                 records = [record.data() for record in res]
                 if records:
                     matched_ids = [r['h_id'] for r in records]
-                    return [h for h in MOCK_HERITAGES if h['h_id'] in matched_ids or h['id'] == start_heritage_id]
+                    return [h for h in all_heritages if h.get('h_id') in matched_ids or h.get('id') == start_heritage_id]
         except Exception as e:
-            print(f"Neo4j Query Error, falling back to heuristic graph recommendation: {e}")
+            print(f"Neo4j Query Notice: {e}")
 
-    # Fallback heuristic graph matching
-    start_item = next((h for h in MOCK_HERITAGES if h['h_id'] == start_heritage_id or h['id'] == start_heritage_id), MOCK_HERITAGES[0])
+    start_item = next((h for h in all_heritages if h.get('h_id') == start_heritage_id or h.get('id') == start_heritage_id), all_heritages[0])
     
     recommendations = [start_item]
-    for candidate in MOCK_HERITAGES:
-        if candidate['h_id'] != start_item['h_id']:
-            if candidate['era_normalized'] == start_item['era_normalized'] or candidate['dong_eup_myeon'] == start_item['dong_eup_myeon']:
+    for candidate in all_heritages:
+        if candidate.get('id') != start_item.get('id'):
+            if candidate.get('era') == start_item.get('era') or candidate.get('dong') == start_item.get('dong'):
                 recommendations.append(candidate)
         if len(recommendations) >= max_items:
             break
             
-    if len(recommendations) < max_items:
-        for candidate in MOCK_HERITAGES:
-            if candidate not in recommendations:
-                recommendations.append(candidate)
-            if len(recommendations) >= max_items:
-                break
-                
     return recommendations

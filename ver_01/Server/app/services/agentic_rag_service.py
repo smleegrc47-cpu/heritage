@@ -27,32 +27,24 @@ class AgentState(TypedDict):
     selected_model: str
     steps_log: list
 
-# 2. 금융/유산 데이터셋 및 문서 전처리 (RecursiveCharacterTextSplitter 시뮬레이션)
-MOCK_FINANCE_DOCS = [
-    {
-        "page_content": "[네이버/다음 금융] 2026 세종시 미래 유산 투자 및 바이오 펀드 분석. 세종 스마트시티 인프라 확충에 따른 공공 자산 가치 상승 효과 대두.",
-        "metadata": {"source": "https://finance.naver.com/market/sejong_heritage"}
-    },
-    {
-        "page_content": "[야후 금융] 조선 시대 지방 관아(연기아문) 및 토지 자산 보존 사업의 경제적 파급 효과. 지역 관광 수입 및 문화 펀드 12% 성장.",
-        "metadata": {"source": "https://finance.yahoo.com/news/sejong_culture_fund"}
-    },
-    {
-        "page_content": "[다음 금융] 세종 비암사 극락보전 문화재 보수 예산 및 전통 한옥 공원 인프라 확충 공공 펀딩 현황 보고서.",
-        "metadata": {"source": "https://finance.daum.net/economic/sejong_heritage_biam"}
-    }
-]
-
 def retrieve_documents(query: str, selected_items: list = None) -> List[Dict[str, Any]]:
-    """웹 크롤링 및 벡터스토어 리트리버 시뮬레이션 (chunk_size=300, chunk_overlap=50)"""
-    q_lower = query.lower()
+    """Supabase DB 및 벡터스토어 리트리버 문서 조회"""
+    from app.database import get_supabase
+    supabase = get_supabase()
     matched = []
-    for doc in MOCK_FINANCE_DOCS:
-        content = doc["page_content"]
-        if any(w in content for w in q_lower.split()) or not q_lower:
-            matched.append(doc)
-    if not matched:
-        matched = MOCK_FINANCE_DOCS[:2]
+    if supabase:
+        try:
+            res = supabase.table("heritages").select("name, description, era, dong").execute()
+            if res.data:
+                for row in res.data:
+                    content = f"[{row.get('dong', '세종시')}] {row.get('name', '')} ({row.get('era', '')}): {row.get('description', '')}"
+                    if not query or any(w in content for w in query.split()):
+                        matched.append({
+                            "page_content": content,
+                            "metadata": {"source": f"Supabase DB ({row.get('name')})"}
+                        })
+        except Exception as e:
+            print(f"Retrieve documents notice: {e}")
     return matched
 
 # 3. 에이전트 제어 노드 함수 정의

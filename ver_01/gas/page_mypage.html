@@ -32,9 +32,11 @@
 
 <script>
   function renderMyPageView() {
-    renderMyCoursesList();
-    renderMyCitizenList();
+    if (typeof renderMyCoursesList === 'function') renderMyCoursesList();
+    if (typeof renderMyCitizenList === 'function') renderMyCitizenList();
   }
+  window.renderMyPageViewImpl = renderMyPageView;
+  window.renderMyPageView = renderMyPageView;
 
   function switchMySubTab(tabName) {
     var btnC = document.getElementById('myTabBtnCourses');
@@ -74,22 +76,22 @@
           <div>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
               <span class="badge badge-dong">저장된 코스</span>
-              <h3 id="courseTitleText_${idx}" style="font-size: 1.2rem; font-weight: 800; color: #fff;">${c.course_name}</h3>
+              <h3 id="courseTitleText_${idx}" style="font-size: 1.2rem; font-weight: 800; color: #fff;">${c.course_name || c.title || '나만의 문화유산 코스'}</h3>
               <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="inlineEditCourseTitle(${idx})">✏️ 인라인 수정</button>
             </div>
             <p style="font-size: 0.88rem; color: var(--accent-cyan); margin-bottom: 6px;">
               📍 코스 경로: ${itemsStr}
             </p>
             <p style="font-size: 0.8rem; color: var(--text-muted);">
-              교통수단: ${c.transport || '승용차'} | 예상 소요시간: 약 ${c.total_time_min || 60}분 | 저장일: ${c.created_at || '최근'}
+              교통수단: ${c.transport || c.transport_mode || '승용차'} | 예상 소요시간: 약 ${c.total_time_min || 60}분 | 저장일: ${c.created_at || '최근'}
             </p>
           </div>
 
           <div style="display: flex; gap: 10px;">
-            <button class="btn-secondary" style="font-size: 0.88rem;" onclick="navigateTo('mypage_detail', { course: appState.savedCourses[${idx}] })">
+            <button class="btn-secondary" style="font-size: 0.88rem;" onclick="openSavedCourseDetail(${idx})">
               📖 상세보기 / AI 잡지
             </button>
-            <button class="btn-primary" style="font-size: 0.88rem;" onclick="navigateTo('review', { course: appState.savedCourses[${idx}] })">
+            <button class="btn-primary" style="font-size: 0.88rem;" onclick="openSavedCourseReview(${idx})">
               ✍️ 후기 작성하기
             </button>
           </div>
@@ -101,9 +103,11 @@
   function inlineEditCourseTitle(index) {
     var course = appState.savedCourses[index];
     if (!course) return;
-    var newTitle = prompt("변경할 코스 이름을 입력하세요:", course.course_name);
+    var currentTitle = course.course_name || course.title || '';
+    var newTitle = prompt("변경할 코스 이름을 입력하세요:", currentTitle);
     if (newTitle && newTitle.trim()) {
       course.course_name = newTitle.trim();
+      course.title = newTitle.trim();
       renderMyCoursesList();
       showToast("코스 이름이 변경되었습니다.");
     }

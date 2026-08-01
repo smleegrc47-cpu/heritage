@@ -93,32 +93,95 @@
   function renderStatusCitizenView() {
     var grid = document.getElementById('citizenApprovedGrid');
     if (!grid) return;
-    var approvedList = appState.citizenHeritages.filter(function(h) { return h.status === '승인'; });
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--accent-cyan); padding: 20px;">☁️ citizen_recommendations 테이블에서 최신 10개 시민 제보 유산을 로딩 중입니다...</div>';
 
-    if (!approvedList.length) {
-      grid.innerHTML = '<div class="glass-card" style="grid-column: 1/-1; text-align: center; color: var(--text-sub);">현재 승인 등록된 시민 제보 문화유산이 없습니다. 첫 번째 유산을 제보해 보세요!</div>';
-      return;
+    function renderItems(items) {
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        grid.innerHTML = '<div class="glass-card" style="grid-column: 1/-1; text-align: center; color: var(--text-sub);">현재 등록된 시민 제보 문화유산(citizen_recommendations)이 없습니다. 첫 번째 유산을 제보해 보세요!</div>';
+        var countBadgeZero = document.querySelector('.count-citizen-text');
+        if (countBadgeZero) countBadgeZero.innerText = '0';
+        return;
+      }
+
+      var top10 = items.slice(0, 10);
+      var countBadge = document.querySelector('.count-citizen-text');
+      if (countBadge) {
+        countBadge.innerText = top10.length;
+      }
+
+      grid.innerHTML = top10.map(function(h, idx) {
+        var statusBadgeClass = (h.status === '승인' || h.status === 'approved') ? 'badge-citizen' : 'badge-era';
+        var statusText = h.status || '신청중';
+        var imgUrl = h.image_url || h.photo_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80';
+        var itemAddress = h.address || h.dong || '세종특별자치시';
+        var itemReason = h.reason || h.description || h.thinking_point || '시민 제보 문화유산';
+
+        return `
+          <div class="glass-card">
+            <img src="${imgUrl}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" alt="citizen_recommendation" />
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span class="badge ${statusBadgeClass}">🌱 시민 제보 (${statusText})</span>
+              <button class="btn-like" onclick="toggleLike('${h.id || idx}', event)">
+                ❤️ <span class="like-count-${h.id || idx}">${h.like_count || h.recommend_count || 1}</span>
+              </button>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">${h.name || '미정 유산명'}</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">📍 ${itemAddress}</p>
+            <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; height: 38px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+              ${itemReason}
+            </p>
+          </div>
+        `;
+      }).join('');
     }
 
-    grid.innerHTML = approvedList.map(function(h) {
-      return `
-        <div class="glass-card">
-          <img src="${h.image_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80'}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" />
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="badge badge-citizen">시민 제보 승인 유산</span>
-            <button class="btn-like" onclick="toggleLike('${h.id}', event)">
-              ❤️ <span class="like-count-${h.id}" data-base-likes="${h.like_count || 20}">${(h.like_count || 20) + (appState.likesMap[h.id] || 0)}</span>
-            </button>
-          </div>
-          <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">${h.name}</h3>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">📍 ${h.address}</p>
-          <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5; height: 38px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-            ${h.reason}
-          </p>
-        </div>
-      `;
-    }).join('');
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+            renderItems(res.data);
+          } else if (res && Array.isArray(res) && res.length > 0) {
+            renderItems(res);
+          } else {
+            fetchDirectCitizenRecommendations(renderItems);
+          }
+        })
+        .withFailureHandler(function() {
+          fetchDirectCitizenRecommendations(renderItems);
+        })
+        .fetchCitizenRecommendationsGAS();
+    } else {
+      fetchDirectCitizenRecommendations(renderItems);
+    }
   }
+
+  function fetchDirectCitizenRecommendations(callback) {
+    var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
+    var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
+
+    fetch(supabaseUrl + '/rest/v1/citizen_recommendations?select=*&order=created_at.desc&limit=10', {
+      method: 'GET',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': 'Bearer ' + supabaseKey
+      }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (Array.isArray(data)) {
+        callback(data);
+      } else {
+        callback([]);
+      }
+    })
+    .catch(function(err) {
+      console.warn('Direct citizen_recommendations fetch notice:', err);
+      callback([]);
+    });
+  }
+
+  window.renderStatusCitizenViewImpl = renderStatusCitizenView;
+  window.renderStatusCitizenView = renderStatusCitizenView;
 
   function openCitizenReportModal() {
     document.getElementById('citizenReportModal').style.display = 'flex';
@@ -149,22 +212,24 @@
     var lng = parseFloat(document.getElementById('citFormLng').value) || 127.2800;
 
     var newRecord = {
-      id: "cit-" + (appState.citizenHeritages.length + 1),
       name: name,
       address: address,
+      dong: address,
       reason: reason,
+      description: reason,
+      thinking_point: reason,
       lat: lat,
+      latitude: lat,
       lng: lng,
-      status: "대기",
+      longitude: lng,
+      status: "신청중",
       like_count: 1,
       image_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80",
       submitted_by: "user@sejong.go.kr"
     };
 
-    appState.citizenHeritages.push(newRecord);
-    updateCountsSummary();
     closeCitizenReportModal();
-    showToast("✅ 문화유산 제보가 '대기' 상태로 등록되었습니다. 담당자 확인 후 공개됩니다!");
+    showToast("✅ 시민제보(citizen_recommendations)가 '신청중' 상태로 성공적으로 등록되었습니다!");
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
       google.script.run.withSuccessHandler(function() {

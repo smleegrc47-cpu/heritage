@@ -5,10 +5,50 @@ app/routers/heritages.py
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List, Dict, Any
-from app.services.rag_service import MOCK_HERITAGES
 from app.database import get_supabase
 
 router = APIRouter(prefix="/api/heritages", tags=["heritages"])
+
+def normalize_heritage_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    dong_val = row.get("dong") or row.get("dong_eup_myeon") or "세종특별자치시"
+    row["dong"] = dong_val
+    row["dong_eup_myeon"] = dong_val
+    
+    era_val = row.get("era") or row.get("era_normalized") or "조선시대"
+    row["era"] = era_val
+    row["era_normalized"] = era_val
+
+    thinking_val = row.get("thinking_point") or row.get("thinkingPoint") or row.get("think_about") or row.get("think_point") or ""
+    row["thinking_point"] = thinking_val
+    row["thinkingPoint"] = thinking_val
+    row["think_about"] = thinking_val
+    row["think_point"] = thinking_val
+
+    lat_val = float(row.get("latitude") or row.get("lat") or 36.52)
+    lng_val = float(row.get("longitude") or row.get("lng") or 127.27)
+    row["latitude"] = lat_val
+    row["lat"] = lat_val
+    row["longitude"] = lng_val
+    row["lng"] = lng_val
+
+    images = row.get("images") or []
+    img_url = ""
+    if images and len(images) > 0:
+        first_img = images[0]
+        if isinstance(first_img, dict):
+            img_url = first_img.get("image_url") or first_img.get("imageUrl") or ""
+    if not img_url:
+        img_url = row.get("image_url") or row.get("imageUrl") or row.get("supabase_storage_url") or row.get("supabaseStorageUrl") or "https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80"
+    
+    row["image_url"] = img_url
+    row["imageUrl"] = img_url
+    row["supabase_storage_url"] = img_url
+    row["supabaseStorageUrl"] = img_url
+
+    row["source"] = row.get("source") or "registered"
+    row["status"] = row.get("status") or "approved"
+    row["like_count"] = int(row.get("like_count") or row.get("likeCount") or 50)
+    return row
 
 @router.get("", response_model=List[Dict[str, Any]])
 def get_heritages(
@@ -33,14 +73,7 @@ def get_heritages(
                 query_builder = query_builder.ilike("name", f"%{keyword}%")
             res = query_builder.execute()
             if res.data is not None:
-                for row in res.data:
-                    row["dong"] = row.get("dong") or row.get("dong_eup_myeon")
-                    row["dong_eup_myeon"] = row["dong"]
-                    row["thinkingPoint"] = row.get("thinking_point") or row.get("think_about")
-                    row["thinking_point"] = row["thinkingPoint"]
-                    row["latitude"] = row.get("latitude") or row.get("lat")
-                    row["longitude"] = row.get("longitude") or row.get("lng")
-                return res.data
+                return [normalize_heritage_row(row) for row in res.data]
         except Exception as e:
             print(f"Supabase fetch error: {e}")
 
@@ -87,10 +120,7 @@ def get_heritage_detail(heritage_id: str):
         try:
             res = supabase.table("heritages").select("*, images:heritage_images(*)").eq("id", heritage_id).execute()
             if res.data and len(res.data) > 0:
-                row = res.data[0]
-                row["dong"] = row.get("dong") or row.get("dong_eup_myeon")
-                row["thinkingPoint"] = row.get("thinking_point") or row.get("think_about")
-                return row
+                return normalize_heritage_row(res.data[0])
         except Exception as e:
             print(f"Detail query error: {e}")
 
