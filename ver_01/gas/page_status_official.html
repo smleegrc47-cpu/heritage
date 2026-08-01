@@ -42,10 +42,12 @@
 </section>
 
 <script>
+  var appState = window.appState = window.appState || { officialHeritages: [], citizenHeritages: [], likesMap: {}, courseList: [], savedCourses: [] };
+
   function renderStatusOfficialView() {
     var grid = document.getElementById('officialHeritageGrid');
     if (!grid) return;
-    var list = appState.officialHeritages;
+    var list = appState.officialHeritages || [];
 
     grid.innerHTML = list.map(function(h) {
       var eraText = h.era_normalized || h.era || '조선시대';

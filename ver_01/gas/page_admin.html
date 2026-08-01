@@ -224,6 +224,8 @@
 </section>
 
 <script>
+  var appState = window.appState = window.appState || { officialHeritages: [], citizenHeritages: [], likesMap: {}, courseList: [], savedCourses: [] };
+
   function renderAdminView() {
     // Access Control check
     if (typeof google !== 'undefined' && google.script && google.script.run) {

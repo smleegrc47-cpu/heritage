@@ -40,6 +40,8 @@
 </section>
 
 <script>
+  var appState = window.appState = window.appState || { officialHeritages: [], citizenHeritages: [], likesMap: {}, courseList: [], savedCourses: [] };
+
   function renderSearchView() {
     executeSearch();
   }
