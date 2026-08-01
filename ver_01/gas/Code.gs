@@ -538,7 +538,8 @@ function submitCitizenRecommendationGAS(data) {
       lng: lngVal,
       photo_url: imgUrl,
       status: data.status || "신청중",
-      recommend_count: 1
+      recommend_count: 1,
+      heart: 1
     };
 
     var options = {

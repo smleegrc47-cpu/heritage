@@ -74,7 +74,8 @@ def submit_citizen_recommendation(data: CitizenRecommendationSubmit):
         "lng": lng_val,
         "photo_url": photo_url,
         "status": "신청중",
-        "recommend_count": 1
+        "recommend_count": 1,
+        "heart": 1
     }
 
     supabase = get_supabase()
