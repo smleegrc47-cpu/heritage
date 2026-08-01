@@ -198,13 +198,21 @@
   window.renderStatusCitizenViewImpl = renderStatusCitizenView;
   window.renderStatusCitizenView = renderStatusCitizenView;
 
-  function openCitizenReportModal() {
-    document.getElementById('citizenReportModal').style.display = 'flex';
-  }
+  window.openCitizenReportModal = function () {
+    var modal = document.getElementById('citizenReportModal');
+    if (!modal) {
+      console.error('ID가 citizenReportModal인 모달 요소가 없습니다.');
+      return;
+    }
+    modal.style.display = 'flex';
+  };
 
-  function closeCitizenReportModal() {
-    document.getElementById('citizenReportModal').style.display = 'none';
-  }
+  window.closeCitizenReportModal = function () {
+    var modal = document.getElementById('citizenReportModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  };
 
   function acquireCurrentGPSLocation() {
     if (navigator.geolocation) {

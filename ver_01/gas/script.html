@@ -104,6 +104,22 @@
     function renderAdminView() {
         if (typeof window.renderAdminViewImpl === 'function') window.renderAdminViewImpl();
     }
+    function openCitizenReportModal() {
+        if (typeof window.openCitizenReportModal === 'function') {
+            window.openCitizenReportModal();
+        } else {
+            var modal = document.getElementById('citizenReportModal');
+            if (modal) modal.style.display = 'flex';
+        }
+    }
+    function closeCitizenReportModal() {
+        if (typeof window.closeCitizenReportModal === 'function') {
+            window.closeCitizenReportModal();
+        } else {
+            var modal = document.getElementById('citizenReportModal');
+            if (modal) modal.style.display = 'none';
+        }
+    }
 
     function initScreenViews() {
         try { renderHomeView(); } catch (e) {}
