@@ -154,34 +154,37 @@
     }
   }
 
-  function fetchDirectCitizenRecommendations(callback) {
+  async function fetchDirectCitizenRecommendations(callback) {
     var supabaseUrl = 'https://nmzrxczcytkkwgpiseaj.supabase.co';
     var supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tenJ4Y3pjeXRra3dncGlzZWFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzM2MDYsImV4cCI6MjA5NjkwOTYwNn0.nVQxRACIt2gUiUDstNAqolozvwr23JU5eyLNi59hCSw';
+    var url = supabaseUrl + '/rest/v1/citizen_recommendations?select=*&limit=10';
 
-    fetch(supabaseUrl + '/rest/v1/citizen_recommendations?select=*&limit=10', {
-      method: 'GET',
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': 'Bearer ' + supabaseKey
-      }
-    })
-    .then(function(res) {
-      if (!res.ok) {
-        throw new Error('Supabase HTTP ' + res.status);
-      }
-      return res.json();
-    })
-    .then(function(data) {
-      if (Array.isArray(data)) {
-        callback(data);
-      } else {
+    try {
+      var response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': 'Bearer ' + supabaseKey,
+          'Accept': 'application/json'
+        }
+      });
+
+      var responseText = await response.text();
+      console.log('citizen_recommendations status:', response.status);
+      console.log('citizen_recommendations response:', responseText);
+
+      if (!response.ok) {
+        console.error('시민 추천 데이터 조회 실패:', response.status, responseText);
         callback([]);
+        return;
       }
-    })
-    .catch(function(err) {
-      console.warn('Direct citizen_recommendations fetch notice:', err);
+
+      var data = responseText ? JSON.parse(responseText) : [];
+      callback(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Direct citizen_recommendations fetch exception:', err);
       callback([]);
-    });
+    }
   }
 
   window.renderStatusCitizenViewImpl = renderStatusCitizenView;
