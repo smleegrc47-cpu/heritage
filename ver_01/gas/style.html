@@ -67,14 +67,18 @@
   }
 
   .gas-logo {
-    width: 42px;
-    height: 42px;
+    width: auto;
+    min-width: fit-content;
+    height: auto;
+    padding: 6px 12px;
     border-radius: var(--radius-sm);
     background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
     color: #0b132b;
     font-weight: 900;
-    font-size: 1.25rem;
-    display: flex;
+    font-size: 0.95rem;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-glow);
