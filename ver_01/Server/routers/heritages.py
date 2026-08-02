@@ -80,3 +80,27 @@ def get_heritage_detail(heritage_id: str):
             print(f"Detail query notice: {e}")
 
     raise HTTPException(status_code=404, detail="문화유산을 찾을 수 없습니다.")
+
+@router.post("/{heritage_id}/like")
+@router.post("/{heritage_id}/heart")
+def increment_heritage_like(heritage_id: str, like_count: Optional[int] = Query(None, description="업데이트할 좋아요 수치")):
+    """공식 문화유산 좋아요(like_count) 서버 경유 Supabase DB 반영"""
+    supabase = get_supabase()
+    if supabase:
+        try:
+            if like_count is not None:
+                new_val = like_count
+            else:
+                curr_res = supabase.table("heritages").select("like_count").eq("id", heritage_id).execute()
+                curr_val = 50
+                if curr_res.data and len(curr_res.data) > 0:
+                    curr_val = curr_res.data[0].get("like_count") or 50
+                new_val = curr_val + 1
+
+            res = supabase.table("heritages").update({"like_count": new_val}).eq("id", heritage_id).execute()
+            return {"status": "success", "id": heritage_id, "like_count": new_val, "updated_via": "server_supabase"}
+        except Exception as e:
+            print(f"Error updating like for heritage {heritage_id}: {e}")
+            return {"status": "error", "detail": str(e), "like_count": like_count or 50}
+
+    return {"status": "mock", "id": heritage_id, "like_count": like_count or 50}

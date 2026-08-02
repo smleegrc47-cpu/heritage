@@ -5,3 +5,6 @@ __pycache__/
 .env
 .DS_Store
 desktop.ini
+ver_01/gas/
+venv/
+.venv/
