@@ -12,16 +12,30 @@ router = APIRouter(prefix="/api/agentic-rag", tags=["agentic-rag"])
 
 class AgenticRAGRequest(BaseModel):
     query: str
+    model: Optional[str] = "gpt-4o"
+    toggles: Optional[List[str]] = []
     selected_items: Optional[List[str]] = ["기본 정보"]
     selected_model: Optional[str] = "gpt-4o"
 
+@router.options("")
+@router.options("/")
+@router.options("/query")
+@router.options("/api/v1/agentic-rag")
+def options_agentic_rag():
+    return {"status": "ok"}
+
+@router.post("")
+@router.post("/")
 @router.post("/query")
+@router.post("/api/v1/agentic-rag")
 def process_agentic_rag(req: AgenticRAGRequest):
     """Agentic RAG 질의 처리 (Agent -> Retrieve -> Grade -> Rewrite -> Generate)"""
+    selected_model = req.model or req.selected_model or "gpt-4o"
+    toggles = req.toggles or req.selected_items or []
     result = run_agentic_rag(
         question=req.query,
-        selected_items=req.selected_items,
-        selected_model=req.selected_model
+        selected_items=toggles,
+        selected_model=selected_model
     )
     return result
 

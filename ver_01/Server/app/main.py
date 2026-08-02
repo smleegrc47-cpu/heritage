@@ -14,11 +14,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Middleware Setup
+# CORS Middleware Setup (allow_credentials=False for wildcard allow_origins to prevent CORS preflight error)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
