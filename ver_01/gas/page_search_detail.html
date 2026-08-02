@@ -96,9 +96,9 @@
     var badges = document.getElementById('detailBadges');
     if (badges) {
       if (item.status === '승인' || item.status === '대기') {
-        badges.innerHTML = `<span class="badge badge-citizen">시민 제보 유산</span>`;
+        badges.innerHTML = '<span class="badge badge-citizen">시민 제보 유산</span>';
       } else {
-        badges.innerHTML = `<span class="badge badge-era">${item.era_normalized || item.era || '조선시대'}</span> <span class="badge badge-dong">${item.dong_eup_myeon || '세종시'}</span>`;
+        badges.innerHTML = '<span class="badge badge-era">' + (item.era_normalized || item.era || '조선시대') + '</span> <span class="badge badge-dong">' + (item.dong_eup_myeon || '세종시') + '</span>';
       }
     }
 

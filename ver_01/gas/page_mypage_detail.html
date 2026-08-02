@@ -109,30 +109,26 @@
     var c = currentDetailCourseObj;
     var itemsStr = (c.items || []).map(function(it) { return it.name; }).join(' 및 ');
 
-    var html = `
-      <div style="font-family: var(--font-family);">
-        <h2 style="font-size: 1.5rem; font-weight: 900; color: var(--accent-cyan); margin-bottom: 12px;">
-          [SPECIAL MAGAZINE] 세종의 과거와 미래를 거닐다: ${c.course_name}
-        </h2>
-        <p style="font-size: 0.95rem; color: var(--text-sub); margin-bottom: 18px;">
-          세종특별자치시의 웅장한 역사 유산인 <strong>${itemsStr}</strong>(을)를 포함한 추천 코스 탐방 리포트입니다.
-        </p>
-
-        <div style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; margin-bottom: 16px;">
-          <h4 style="color: var(--accent-amber); font-weight: 700; margin-bottom: 6px;">🏛️ 1관. 관아와 산사의 고풍스러운 숨결</h4>
-          <p style="font-size: 0.9rem; line-height: 1.6;">
-            조선시대 연기현 관아의 당당한 풍채를 자랑하는 연기아문과 웅장한 비암사 극락보전 단청은 보는 이로 하여금 수백 년 전 역사의 한 장면에 서 있는 듯한 전율을 선사합니다.
-          </p>
-        </div>
-
-        <div style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; margin-bottom: 16px;">
-          <h4 style="color: var(--accent-cyan); font-weight: 700; margin-bottom: 6px;">🌿 2관. 한옥 공원의 정서적 쉼터</h4>
-          <p style="font-size: 0.9rem; line-height: 1.6;">
-            현대식 신도시 빌딩 사이에 굳건히 조화를 이루는 초려 이유태 역사공원의 고즈넉한 한옥 툇마루에서 세종의 자연 경관을 조망하며 차 한잔의 안식을 다져봅니다.
-          </p>
-        </div>
-      </div>
-    `;
+    var html = '<div style="font-family: var(--font-family);">' +
+        '<h2 style="font-size: 1.5rem; font-weight: 900; color: var(--accent-cyan); margin-bottom: 12px;">' +
+          '[SPECIAL MAGAZINE] 세종의 과거와 미래를 거닐다: ' + (c.course_name || '추천 코스') +
+        '</h2>' +
+        '<p style="font-size: 0.95rem; color: var(--text-sub); margin-bottom: 18px;">' +
+          '세종특별자치시의 웅장한 역사 유산인 <strong>' + itemsStr + '</strong>(을)를 포함한 추천 코스 탐방 리포트입니다.' +
+        '</p>' +
+        '<div style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; margin-bottom: 16px;">' +
+          '<h4 style="color: var(--accent-amber); font-weight: 700; margin-bottom: 6px;">🏛️ 1관. 관아와 산사의 고풍스러운 숨결</h4>' +
+          '<p style="font-size: 0.9rem; line-height: 1.6;">' +
+            '조선시대 연기현 관아의 당당한 풍채를 자랑하는 연기아문과 웅장한 비암사 극락보전 단청은 보는 이로 하여금 수백 년 전 역사의 한 장면에 서 있는 듯한 전율을 선사합니다.' +
+          '</p>' +
+        '</div>' +
+        '<div style="background: rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; margin-bottom: 16px;">' +
+          '<h4 style="color: var(--accent-cyan); font-weight: 700; margin-bottom: 6px;">🌿 2관. 한옥 공원의 정서적 쉼터</h4>' +
+          '<p style="font-size: 0.9rem; line-height: 1.6;">' +
+            '현대식 신도시 빌딩 사이에 굳건히 조화를 이루는 초려 이유태 역사공원의 고즈넉한 한옥 툇마루에서 세종의 자연 경관을 조망하며 차 한잔의 안식을 다져봅니다.' +
+          '</p>' +
+        '</div>' +
+      '</div>';
 
     articleContent.innerHTML = html;
     articleContent.style.display = 'block';

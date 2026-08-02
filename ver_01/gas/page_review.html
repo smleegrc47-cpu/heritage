@@ -101,38 +101,31 @@
     var items = course.items || appState.officialHeritages.slice(0, 2);
 
     container.innerHTML = items.map(function(item, idx) {
-      return `
-        <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">
-          <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px;">
-            [유산 ${idx + 1}] ${item.name} (${item.dong_eup_myeon || '세종시'})
-          </h4>
-          
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 10px;">
-            <div>
-              <label style="display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px;">사진 업로드 (Drive)</label>
-              <input type="file" class="review-item-photo" accept="image/*" style="width: 100%; font-size: 0.8rem; color: var(--text-muted);" />
-            </div>
-
-            <div>
-              <label style="display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px;">개별 추천 여부</label>
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #fff; margin-top: 6px;">
-                <input type="checkbox" class="review-item-recommend" checked /> 추천함 (추천 뱃지)
-              </label>
-            </div>
-          </div>
-
-          <!-- Amenities Optional Check -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; font-size: 0.82rem; color: var(--text-sub); background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-            <label><input type="checkbox" class="review-item-parking" /> 🅿️ 주차장 개선필요</label>
-            <label><input type="checkbox" class="review-item-restroom" /> 🚻 화장실 개선필요</label>
-            <label><input type="checkbox" class="review-item-restaurant" /> 🍽️ 주변 식당 충분</label>
-          </div>
-
-          <div>
-            <textarea class="review-item-text" rows="2" placeholder="해당 문화유산 방문 느낀점을 적어주세요." style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: #fff; font-size: 0.88rem;"></textarea>
-          </div>
-        </div>
-      `;
+      return '<div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md);">' +
+          '<h4 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px;">' +
+            '[유산 ' + (idx + 1) + '] ' + item.name + ' (' + (item.dong_eup_myeon || '세종시') + ')' +
+          '</h4>' +
+          '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 10px;">' +
+            '<div>' +
+              '<label style="display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px;">사진 업로드 (Drive)</label>' +
+              '<input type="file" class="review-item-photo" accept="image/*" style="width: 100%; font-size: 0.8rem; color: var(--text-muted);" />' +
+            '</div>' +
+            '<div>' +
+              '<label style="display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px;">개별 추천 여부</label>' +
+              '<label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #fff; margin-top: 6px;">' +
+                '<input type="checkbox" class="review-item-recommend" checked /> 추천함 (추천 뱃지)' +
+              '</label>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; font-size: 0.82rem; color: var(--text-sub); background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; margin-bottom: 10px;">' +
+            '<label><input type="checkbox" class="review-item-parking" /> 🅿️ 주차장 개선필요</label>' +
+            '<label><input type="checkbox" class="review-item-restroom" /> 🚻 화장실 개선필요</label>' +
+            '<label><input type="checkbox" class="review-item-restaurant" /> 🍽️ 주변 식당 충분</label>' +
+          '</div>' +
+          '<div>' +
+            '<textarea class="review-item-text" rows="2" placeholder="해당 문화유산 방문 느낀점을 적어주세요." style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: #fff; font-size: 0.88rem;"></textarea>' +
+          '</div>' +
+        '</div>';
     }).join('');
   }
 

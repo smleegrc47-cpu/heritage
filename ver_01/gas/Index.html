@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script>
     // Server Backend Endpoint Configuration (Cloud Run / NestJS Server)
-    window.CLOUD_RUN_SERVER_URL = "<?= getCloudRunBackendUrl() ?>";
+    window.CLOUD_RUN_SERVER_URL = "<?= (typeof getCloudRunBackendUrl === 'function') ? getCloudRunBackendUrl() : 'https://heritage-min-503408.us-central1.run.app' ?>";
     
     function getServerUrl(path) {
       var baseUrl = window.CLOUD_RUN_SERVER_URL || 'https://heritage-min-503408.us-central1.run.app';
@@ -50,6 +50,17 @@
     window.renderMyPageDetailView = window.renderMyPageDetailView || function() {};
     window.renderReviewView = window.renderReviewView || function() {};
     window.renderAdminView = window.renderAdminView || function() {};
+
+    window.openCitizenReportModal = window.openCitizenReportModal || function() {
+      var modal = document.getElementById('citizenReportModal');
+      if (modal) modal.style.display = 'flex';
+      else if (typeof window.openCitizenReportModalImpl === 'function') window.openCitizenReportModalImpl();
+    };
+    window.closeCitizenReportModal = window.closeCitizenReportModal || function() {
+      var modal = document.getElementById('citizenReportModal');
+      if (modal) modal.style.display = 'none';
+      else if (typeof window.closeCitizenReportModalImpl === 'function') window.closeCitizenReportModalImpl();
+    };
 
     window.navigateTo = function(tabId, paramData) {
       console.log("Navigating to tab:", tabId);
@@ -107,10 +118,10 @@
     <aside class="gas-sidebar">
       <div class="gas-brand">
         <!-- 홈버튼: 항상 상단 고정해 1번 홈화면으로 복귀 -->
-        <div class="gas-logo" onclick="navigateTo('home')" style="cursor: pointer;" title="홈으로 이동">GAS</div>
+        <div class="gas-logo" onclick="navigateTo('home')" style="cursor: pointer;" title="홈으로 이동">지키미</div>
         <div onclick="navigateTo('home')" style="cursor: pointer;">
           <h2 style="font-size: 1rem; font-weight: 800;">세종시 문화유산</h2>
-          <p style="font-size: 0.7rem; color: var(--accent-cyan);">Google Apps Script WebApp</p>
+          <p style="font-size: 0.7rem; color: var(--accent-cyan);">스마트 문화유산 지키미 WebApp</p>
         </div>
       </div>
 
@@ -126,7 +137,7 @@
             📜 1. 국가/지자체 문화유산
           </button>
           <button id="nav_status_citizen" class="gas-nav-item" onclick="navigateTo('status_citizen')" style="padding-left: 24px; font-size: 0.88rem;">
-            🌱 2. 시민 제보 유산
+            🌱 2. 시민 제보 문화유산
           </button>
         </div>
 
@@ -140,19 +151,9 @@
           🧭 4. 당일 관광 코스 만들기
         </button>
 
-        <!-- 5. 나의 추천 문화 유산 -->
-        <button id="nav_mypage" class="gas-nav-item" onclick="navigateTo('mypage')">
-          🔖 5. 나의 추천 문화 유산
-        </button>
-
-        <!-- Agentic RAG 정보검색 시스템 -->
-        <button id="nav_agentic_rag" class="gas-nav-item" onclick="navigateTo('agentic_rag')" style="background: rgba(0,245,212,0.06); border: 1px dashed rgba(0,245,212,0.3);">
-          ⚡ Agentic RAG
-        </button>
-
-        <!-- 6. 관리자 페이지 (관리자에게만 노출) -->
+        <!-- 5. 관리자 페이지 (관리자에게만 노출) -->
         <button id="nav_admin" class="gas-nav-item" onclick="navigateTo('admin')" style="margin-top: 12px; border-top: 1px solid var(--border-color); color: var(--accent-rose);">
-          🔒 6. 관리자 센터
+          🔒 5. 관리자 센터
         </button>
       </nav>
 
@@ -192,11 +193,8 @@
       <!-- 9. 나만의 문화유산 (후기쓰기) -->
       <?!= include('page_review') ?>
 
-      <!-- 10. 관리자 페이지 -->
+      <!-- 7. 관리자 페이지 (Agentic RAG 통합) -->
       <?!= include('page_admin') ?>
-
-      <!-- Bonus: Agentic RAG 정보검색 시스템 -->
-      <?!= include('page_agentic_rag') ?>
     </main>
   </div>
 

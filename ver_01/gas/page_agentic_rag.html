@@ -15,7 +15,7 @@
         <label style="display: block; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 600;">
           AI 질문 입력하기 <span style="color: var(--accent-cyan)">*</span>
         </label>
-        <textarea id="agenticQueryInput" rows="3" placeholder="예: 세종시 문화유산 자산 보존 사업과 금융 펀드 연계 분석 결과를 알려주세요." style="width: 100%; padding: 14px; border-radius: var(--radius-md); background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); color: #fff; font-size: 0.98rem; outline: none;">세종 연기아문 및 비암사 문화재 보존 자산의 금융적 파급 효과 분석</textarea>
+        <textarea id="agenticQueryInput" rows="3" placeholder="예: 세종시 문화유산 보존 사업 및 유산 탐방 코스 추천 분석 결과를 알려주세요." style="width: 100%; padding: 14px; border-radius: var(--radius-md); background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); color: #fff; font-size: 0.98rem; outline: none;">세종 연기아문 및 비암사 문화유산 보존과 문화적 파급 효과 분석</textarea>
       </div>
 
       <!-- [작성을 원하는 항목 선택하기] 토글/체크박스 -->
@@ -25,7 +25,7 @@
         </label>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
           <label style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer;">
-            <input type="checkbox" class="agentic-toggle-item" value="웹 크롤링 데이터 (네이버/야후/다음 금융)" checked />
+            <input type="checkbox" class="agentic-toggle-item" value="웹 크롤링 데이터 (문화재청 / 세종시 문화유산 DB)" checked />
             <span>🌐 WebBaseLoader 크롤링</span>
           </label>
           <label style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer;">
@@ -89,7 +89,7 @@
       <div style="background: #0f172a; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; color: #38bdf8; white-space: pre-wrap; overflow-x: auto;">
 graph TD
     __start__([시작]) --> agent[Agent 노드: 질문 처리];
-    agent --> retrieve[Retrieve 노드: 금융/유산 DB 검색];
+    agent --> retrieve[Retrieve 노드: 세종 문화유산 DB 검색];
     retrieve --> grade[grade_documents: 문서 관련성 평가];
     grade -- yes (관련 있음) --> generate[Generate 노드: 최종 답변 생성];
     grade -- no (관련 없음) --> rewrite[Rewrite 노드: 질문 재작성];

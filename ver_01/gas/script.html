@@ -133,6 +133,10 @@
 
     // SPA Tab Routing Helper
     function navigateTo(tabId, paramData) {
+        if (tabId === 'agentic_rag') {
+            navigateTo('admin', paramData);
+            return;
+        }
         var mainEl = document.querySelector('.gas-main');
         if (mainEl) {
             appState.scrollPositionMap[appState.currentTab] = mainEl.scrollTop;
@@ -277,6 +281,50 @@
                 }
             });
         }
+        if (window.appState && Array.isArray(window.appState.officialHeritages)) {
+            window.appState.officialHeritages.forEach(function(item) {
+                if (item.id === id || String(item.id) === String(id) || (itemName && item.name === itemName)) {
+                    item.like_count = newHeart;
+                }
+            });
+        }
+
+        // 1. 서버(Server) 경유 Supabase 반영 우선 시도
+        var serverEndpoint = (typeof getServerUrl === 'function')
+          ? getServerUrl('/api/heritages/' + encodeURIComponent(id) + '/like?like_count=' + newHeart)
+          : null;
+
+        if (serverEndpoint) {
+            fetch(serverEndpoint, { method: 'POST' })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                console.log('⚡ Server API like update response:', data);
+                if (data && (data.status === 'success' || data.like_count !== undefined)) {
+                    showToast("✅ 서버 경유 Supabase DB 좋아요(" + newHeart + ") 반영 완료!");
+                } else {
+                    fallbackSupabaseDirect();
+                }
+            })
+            .catch(function(err) {
+                console.warn('Server endpoint notice, using direct Supabase fallback:', err);
+                fallbackSupabaseDirect();
+            });
+        } else {
+            fallbackSupabaseDirect();
+        }
+
+        function fallbackSupabaseDirect() {
+            var isUUID = typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            if (isUUID) {
+                executePatch('id=eq.' + encodeURIComponent(id), { heart: newHeart, recommend_count: newHeart, like_count: newHeart }, function() {
+                    if (itemName) {
+                        executePatch('name=eq.' + encodeURIComponent(itemName), { heart: newHeart, recommend_count: newHeart, like_count: newHeart }, null);
+                    }
+                });
+            } else if (itemName) {
+                executePatch('name=eq.' + encodeURIComponent(itemName), { heart: newHeart, recommend_count: newHeart, like_count: newHeart }, null);
+            }
+        }
 
         function executePatch(queryParam, payloadObj, fallbackFn) {
             var patchUrl = supabaseUrl + '/rest/v1/citizen_recommendations?' + queryParam;
@@ -294,18 +342,7 @@
                 return res.text().then(function(txt) {
                     console.log('Supabase DB PATCH (' + queryParam + ') status:', res.status, 'body:', txt);
                     if (res.ok) {
-                        var arr = [];
-                        if (txt && typeof txt === 'string' && (txt.trim().startsWith('[') || txt.trim().startsWith('{'))) {
-                            try { arr = JSON.parse(txt); } catch (e) {}
-                        }
-                        if (Array.isArray(arr) && arr.length > 0) {
-                            showToast("✅ Supabase DB 하트(" + newHeart + ") 갱신 완료!");
-                        } else if (fallbackFn) {
-                            fallbackFn();
-                        }
-                    } else if (txt && txt.indexOf('heart') !== -1 && payloadObj.heart !== undefined) {
-                        delete payloadObj.heart;
-                        executePatch(queryParam, { recommend_count: newHeart }, null);
+                        showToast("✅ Supabase DB 하트(" + newHeart + ") 갱신 완료!");
                     } else if (fallbackFn) {
                         fallbackFn();
                     }
@@ -315,18 +352,6 @@
                 console.warn('Supabase PATCH exception:', err);
                 if (fallbackFn) fallbackFn();
             });
-        }
-
-        var isUUID = typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-
-        if (isUUID) {
-            executePatch('id=eq.' + encodeURIComponent(id), { heart: newHeart, recommend_count: newHeart }, function() {
-                if (itemName) {
-                    executePatch('name=eq.' + encodeURIComponent(itemName), { heart: newHeart, recommend_count: newHeart }, null);
-                }
-            });
-        } else if (itemName) {
-            executePatch('name=eq.' + encodeURIComponent(itemName), { heart: newHeart, recommend_count: newHeart }, null);
         }
 
         if (typeof google !== 'undefined' && google.script && google.script.run) {

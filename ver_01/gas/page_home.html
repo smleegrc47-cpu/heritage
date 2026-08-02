@@ -12,11 +12,6 @@
           세종시 문화유산을 한눈에 탐색하고 나만의 맞춤 여행 코스를 만들어보세요.
         </p>
       </div>
-
-      <!-- Top Right Button: 시민문화유산 제보하기 -->
-      <button class="btn-primary" onclick="navigateTo('status_citizen', { openForm: true })" style="padding: 14px 24px; font-size: 0.98rem;">
-        ✍️ 시민문화유산 제보하기
-      </button>
     </div>
 
     <!-- AI Search Bar -->
@@ -55,62 +50,13 @@
     </div>
   </div>
 
-  <!-- [2단계 확장 영역] 시민 추천 문화유산 코스 -->
+  <!-- [2단계 확장 영역] 시민 추천 문화유산 코스 (Supabase heritages 테이블 동적 2선 노출) -->
   <div style="margin-bottom: 36px;">
     <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-      <span>🚩</span> 시민 추천 문화유산 코스 리스트
+      <span>🚩</span> 시민 추천 문화유산 코스 리스트 (Supabase DB)
     </h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
-      
-      <!-- Card Item 1 -->
-      <div class="glass-card" style="display: flex; flex-direction: column; gap: 12px;">
-        <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md);" />
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="badge badge-dong">조선 관아 & 한옥 쉼터 탐방</span>
-          <button class="btn-like" onclick="toggleLike('course-rec-1', event)">
-            ❤️ <span class="like-count-course-rec-1" data-base-likes="76">76</span>
-          </button>
-        </div>
-        <h4 style="font-size: 1.15rem; font-weight: 700;">세종 역사 숨결과 한옥 쉼터 기행</h4>
-        <p style="font-size: 0.85rem; color: var(--accent-cyan);">
-          연기아문 ➔ 초려 이유태 역사공원
-        </p>
-        <p style="font-size: 0.83rem; color: var(--text-sub); line-height: 1.5;">
-          "가족과 함께 연기현 관아 대문의 위엄을 구경하고 한옥 공원에서 여유롭게 차 한잔 나누기 좋은 추천 코스입니다."
-        </p>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
-          <span style="font-size: 0.8rem; color: var(--text-muted);">👨‍👩‍👧 가족 방문 · 만족도 ⭐⭐⭐⭐⭐</span>
-          <!-- 나도가기 버튼: 해당 코스 구성으로 코스 만들기 화면 진입 -->
-          <button class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="loadPresetCourseToPlanner(['h1', 'h3'])">
-            🚶 나도가기
-          </button>
-        </div>
-      </div>
-
-      <!-- Card Item 2 -->
-      <div class="glass-card" style="display: flex; flex-direction: column; gap: 12px;">
-        <img src="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&q=80" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md);" />
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="badge badge-era">비암사 산사 힐링</span>
-          <button class="btn-like" onclick="toggleLike('course-rec-2', event)">
-            ❤️ <span class="like-count-course-rec-2" data-base-likes="104">104</span>
-          </button>
-        </div>
-        <h4 style="font-size: 1.15rem; font-weight: 700;">전의면 비암사 & 구절초 산사 힐링길</h4>
-        <p style="font-size: 0.85rem; color: var(--accent-cyan);">
-          비암사 극락보전 ➔ 영평사 구절초길
-        </p>
-        <p style="font-size: 0.83rem; color: var(--text-sub); line-height: 1.5;">
-          "고즈넉한 불전 단청과 꽃길을 걸으며 마음의 안식을 찾기에 완벽한 힐링 유산 코스입니다."
-        </p>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
-          <span style="font-size: 0.8rem; color: var(--text-muted);">💑 연인/친구 · 만족도 ⭐⭐⭐⭐⭐</span>
-          <button class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="loadPresetCourseToPlanner(['h2', 'h5'])">
-            🚶 나도가기
-          </button>
-        </div>
-      </div>
-
+    <div id="homeCitizenCourseListGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+      <!-- JavaScript Dynamic Rendered from Supabase heritages table (2 items) -->
     </div>
   </div>
 
@@ -135,41 +81,121 @@
 <script>
   function renderHomeView() {
     var container = document.getElementById('homeFeaturedCards');
-    if (!container) return;
+    var courseGrid = document.getElementById('homeCitizenCourseListGrid');
+
     var state = window.appState || (typeof appState !== 'undefined' ? appState : { officialHeritages: [], likesMap: {} });
     var officialList = state.officialHeritages || [];
     var list = officialList.slice(0, 3);
     var likesMap = state.likesMap || {};
 
-    container.innerHTML = list.map(function(h) {
-      var eraText = h.era_normalized || h.era || '조선시대';
-      var dongText = h.dong_eup_myeon || h.dong || '세종시';
-      var imgUrl = h.image_url || 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800';
-      var baseLikes = h.like_count || 100;
-      var totalLikes = baseLikes + (likesMap[h.id] || 0);
+    if (container) {
+      container.innerHTML = list.map(function(h) {
+        var eraText = h.era_normalized || h.era || '조선시대';
+        var dongText = h.dong_eup_myeon || h.dong || '세종시';
+        var imgUrl = h.image_url || 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800';
+        var baseLikes = h.like_count || 100;
+        var totalLikes = baseLikes + (likesMap[h.id] || 0);
 
-      return '<div class="glass-card" style="cursor: pointer;" onclick="openSearchDetailById(\'' + h.id + '\')">' +
-          '<img src="' + imgUrl + '" style="width: 100%; height: 165px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" />' +
-          '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
-            '<div>' +
-              '<span class="badge badge-era">' + eraText + '</span> ' +
-              '<span class="badge badge-dong">' + dongText + '</span>' +
+        return '<div class="glass-card" style="cursor: pointer;" onclick="openSearchDetailById(\'' + h.id + '\')">' +
+            '<img src="' + imgUrl + '" style="width: 100%; height: 165px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" />' +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+              '<div>' +
+                '<span class="badge badge-era">' + eraText + '</span> ' +
+                '<span class="badge badge-dong">' + dongText + '</span>' +
+              '</div>' +
+              '<button class="btn-like" onclick="toggleLike(\'' + h.id + '\', event)">' +
+                '❤️ <span class="like-count-' + h.id + '" data-base-likes="' + baseLikes + '">' + totalLikes + '</span>' +
+              '</button>' +
             '</div>' +
-            '<button class="btn-like" onclick="toggleLike(\'' + h.id + '\', event)">' +
-              '❤️ <span class="like-count-' + h.id + '" data-base-likes="' + baseLikes + '">' + totalLikes + '</span>' +
+            '<h4 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">' + h.name + '</h4>' +
+            '<p style="font-size: 0.83rem; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">' +
+              (h.description || '') +
+            '</p>' +
+          '</div>';
+      }).join('');
+    }
+
+    if (courseGrid) {
+      renderHomeCitizenCourses(officialList.slice(0, 2), courseGrid);
+    }
+  }
+
+  function renderHomeCitizenCourses(items, grid) {
+    if (!grid) return;
+    if (!items || items.length === 0) {
+      grid.innerHTML = '<div class="glass-card" style="grid-column: 1/-1; text-align: center; color: var(--text-sub);">Supabase heritages 데이터 로딩 중입니다...</div>';
+      return;
+    }
+
+    var top2 = items.slice(0, 2);
+    grid.innerHTML = top2.map(function(h, idx) {
+      var img = h.image_url || (h.images && h.images[0] ? h.images[0].url : '') || 'https://images.unsplash.com/photo-1548013146-72479768bada?w=600&q=80';
+      var title = h.name || '세종 문화유산 추천 코스';
+      var dong = h.dong_eup_myeon || h.dong || '세종시';
+      var desc = h.description || h.thinking_point || 'Supabase heritages 테이블 기반 추천 문화유산 데이터입니다.';
+      var baseLike = (h.like_count || 50) + (idx * 25);
+      var currentLike = baseLike + (appState.likesMap[h.id] || 0);
+
+      return '<div class="glass-card" style="display: flex; flex-direction: column; gap: 12px;">' +
+          '<img src="' + img + '" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md);" alt="' + title + '" />' +
+          '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+            '<span class="badge badge-dong">🏛️ Supabase heritages [' + dong + ']</span>' +
+            '<button class="btn-like" onclick="toggleLike(\'' + (h.id || idx) + '\', event)">' +
+              '❤️ <span class="like-count-' + (h.id || idx) + '" data-base-likes="' + baseLike + '">' + currentLike + '</span>' +
             '</button>' +
           '</div>' +
-          '<h4 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 6px;">' + h.name + '</h4>' +
-          '<p style="font-size: 0.83rem; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">' +
-            (h.description || '') +
+          '<h4 style="font-size: 1.15rem; font-weight: 700;">' + title + '</h4>' +
+          '<p style="font-size: 0.85rem; color: var(--accent-cyan);">📍 ' + (h.address || dong) + '</p>' +
+          '<p style="font-size: 0.83rem; color: var(--text-sub); line-height: 1.5; height: 38px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">' +
+            '"' + desc + '"' +
           '</p>' +
+          '<div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">' +
+            '<span style="font-size: 0.8rem; color: var(--text-muted);">✨ Supabase DB 2선 노출</span>' +
+            '<button class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem;" onclick="loadPresetCourseToPlanner([\'' + h.id + '\'])">' +
+              '🚶 나도가기' +
+            '</button>' +
+          '</div>' +
         '</div>';
     }).join('');
   }
 
   function submitHomeSearch() {
-    var query = document.getElementById('homeSearchInput').value.trim();
-    navigateTo('search', { query: query });
+    var query = document.getElementById('homeSearchInput') ? document.getElementById('homeSearchInput').value.trim() : '';
+    
+    var state = window.appState || (typeof appState !== 'undefined' ? appState : { officialHeritages: [], citizenHeritages: [] });
+    var official = state.officialHeritages || [];
+    var citizen = state.citizenHeritages || [];
+
+    var matchedItems = [];
+
+    if (query) {
+      var q = query.toLowerCase();
+      matchedItems = official.filter(function(h) {
+        return (h.name && h.name.toLowerCase().includes(q)) ||
+               (h.dong_eup_myeon && h.dong_eup_myeon.toLowerCase().includes(q)) ||
+               (h.description && h.description.toLowerCase().includes(q)) ||
+               (h.era && h.era.toLowerCase().includes(q));
+      });
+
+      if (matchedItems.length === 0) {
+        matchedItems = citizen.filter(function(c) {
+          return c.status === '승인' &&
+                 ((c.name && c.name.toLowerCase().includes(q)) ||
+                  (c.address && c.address.toLowerCase().includes(q)) ||
+                  (c.reason && c.reason.toLowerCase().includes(q)));
+        });
+      }
+    }
+
+    if (!matchedItems || matchedItems.length === 0) {
+      matchedItems = official.slice(0, 3);
+    }
+
+    // "문화유산 나만의 코스 만들기"의 courseList에 검색 결과 추가
+    state.courseList = matchedItems.slice(0, 4);
+
+    showToast("🤖 AI 검색 결과 [" + state.courseList.length + "개] 유산이 '문화유산 나만의 코스 만들기' 화면 구성요소로 불러와졌습니다!");
+    navigateTo('course', { searchQuery: query });
   }
 
   function loadPresetCourseToPlanner(heritageIds) {

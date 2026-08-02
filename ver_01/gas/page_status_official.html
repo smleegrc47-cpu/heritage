@@ -48,6 +48,10 @@
     var grid = document.getElementById('officialHeritageGrid');
     if (!grid) return;
     var list = appState.officialHeritages || [];
+    if (!list || list.length === 0) {
+      grid.innerHTML = '<div class="glass-card" style="grid-column: 1/-1; text-align: center; color: var(--text-sub);">Supabase DB에서 공식 문화유산 데이터를 로딩 중입니다...</div>';
+      return;
+    }
 
     grid.innerHTML = list.map(function(h) {
       var eraText = h.era_normalized || h.era || '조선시대';
@@ -95,11 +99,11 @@
     var dongContainer = document.getElementById('dongChartCanvas');
 
     eraContainer.innerHTML = Object.keys(eraCounts).map(function(k) {
-      return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;"><span>${k}</span><strong style="color:var(--accent-cyan);">${eraCounts[k]}건</strong></div>`;
+      return '<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;"><span>' + k + '</span><strong style="color:var(--accent-cyan);">' + eraCounts[k] + '건</strong></div>';
     }).join('');
 
     dongContainer.innerHTML = Object.keys(dongCounts).map(function(k) {
-      return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;"><span>${k}</span><strong style="color:var(--accent-blue);">${dongCounts[k]}건</strong></div>`;
+      return '<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;"><span>' + k + '</span><strong style="color:var(--accent-blue);">' + dongCounts[k] + '건</strong></div>';
     }).join('');
   }
 </script>
