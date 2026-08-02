@@ -32,6 +32,24 @@ app.include_router(courses.router)
 app.include_router(transport.router)
 app.include_router(agentic_rag.router)
 
+from fastapi.responses import JSONResponse
+
+@app.options("/api/v1/agentic-rag")
+@app.options("/{full_path:path}")
+def global_cors_options(full_path: str = ""):
+    return JSONResponse(
+        content={"status": "ok"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
+
+@app.post("/api/v1/agentic-rag")
+def direct_agentic_rag_v1(req: agentic_rag.AgenticRAGRequest):
+    return agentic_rag.process_agentic_rag(req)
+
 @app.get("/")
 def root():
     return {
